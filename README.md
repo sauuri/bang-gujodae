@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚨 방구조대
 
-## Getting Started
+> 방 사진 찍으면 AI가 **지금 당장 할 정리 순서**만 알려줘요.  
+> 전체 다 하라는 게 아니에요. 시작 순서만.
 
-First, run the development server:
+**[▶ 바로 써보기](https://bang-gujodae.vercel.app)**
+
+---
+
+## 왜 만들었냐면
+
+방 정리를 못 하는 이유는 의지력이 없어서가 아니에요.  
+"어디서부터 시작해야 하지?"를 몰라서예요.
+
+방구조대는 사진 하나로 그 질문에 답해줘요.
+
+---
+
+## 핵심 기능
+
+- 📸 **방 사진 업로드** — 클릭 또는 드래그 앤 드롭, 카메라 직접 촬영 가능
+- 🔍 **AI 상태 분석** — 난이도(하/중/상) + 방 상태 요약
+- 🧹 **정리 순서 제시** — 에너지·시간에 맞게 3~5단계
+- ✕ **오늘 안 해도 되는 것** — 부담 줄이는 스킵 리스트
+- ✓ **체크리스트** — 단계별 완료 체크 + 진행 바
+
+---
+
+## 기술 스택
+
+| 영역 | 기술 |
+|------|------|
+| 프레임워크 | Next.js 15 (App Router, TypeScript) |
+| AI | GPT-4o-mini Vision (`detail: "low"`) |
+| 배포 | Vercel |
+| 스타일 | TailwindCSS v4 + Inline CSS |
+
+### 비용 최적화
+
+- 이미지를 클라이언트에서 **512×512로 리사이즈** 후 전송
+- `detail: "low"` 옵션으로 이미지를 **고정 85 토큰** 처리
+- 요청 1회당 약 **$0.0003** (0.03센트)
+
+---
+
+## 로컬 실행
 
 ```bash
+git clone https://github.com/sauuri/bang-gujodae
+cd bang-gujodae
+npm install
+echo "OPENAI_API_KEY=sk-..." > .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 관련 프로젝트
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ResetPilot](https://github.com/sauuri/reset-pilot) — 오늘 망한 날 복구 플랜 AI (같은 철학)
