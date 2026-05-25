@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Step {
@@ -8,6 +8,12 @@ interface Step {
   title: string;
   duration: string;
   reason: string;
+}
+
+interface CompareResult {
+  changes: string[];
+  praise: string;
+  score: number;
 }
 
 interface RescueResult {
@@ -31,6 +37,10 @@ export default function ResultPage() {
   const router = useRouter();
   const [result, setResult] = useState<RescueResult | null>(null);
   const [checked, setChecked] = useState<boolean[]>([]);
+  const [afterImage, setAfterImage] = useState<string | null>(null);
+  const [comparing, setComparing] = useState(false);
+  const [compareResult, setCompareResult] = useState<CompareResult | null>(null);
+  const afterInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem("rescueResult");
@@ -53,6 +63,45 @@ export default function ResultPage() {
     const next = [...checked];
     next[i] = !next[i];
     setChecked(next);
+  }
+
+  async function handleAfterImage(file: File) {
+    if (!file.type.startsWith("image/")) return;
+    const base64 = await new Promise<string>((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const MAX = 512;
+        const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.src = url;
+    });
+    setAfterImage(base64);
+    setCompareResult(null);
+  }
+
+  async function compare() {
+    if (!afterImage || !result?.imageB64) return;
+    setComparing(true);
+    try {
+      const res = await fetch("/api/compare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ beforeImage: result.imageB64, afterImage }),
+      });
+      const data = await res.json();
+      setCompareResult(data);
+    } catch {
+      alert("비교 중 오류가 발생했어요.");
+    } finally {
+      setComparing(false);
+    }
   }
 
   return (
@@ -202,6 +251,134 @@ export default function ResultPage() {
           </div>
         </div>
       </div>
+
+      {/* After 사진 비교 섹션 */}
+      {anyDone && (
+        <div className="ticket animate-fadeInUp" style={{ marginBottom: 14 }}>
+          <div className="ticket-header">
+            <div style={{ fontSize: 9, letterSpacing: 2, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>BEFORE / AFTER</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "white" }}>정리 후 사진 찍어줘요 📸</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 6, lineHeight: 1.6 }}>
+              처음 사진과 <strong style={{ color: "#FFE066" }}>같은 방향, 같은 위치</strong>에서 찍어주세요.<br />
+              얼마나 달라졌는지 AI가 찾아드릴게요.
+            </div>
+          </div>
+
+          <div className="ticket-stub">
+            {/* Before / After 나란히 */}
+            {result.imageB64 && (
+              <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+                <div style={{ flex: 1, textAlign: "center" }}>
+                  <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#9ab8cc", marginBottom: 5 }}>BEFORE</div>
+                  <img src={result.imageB64} alt="before" style={{ width: "100%", borderRadius: 8, objectFit: "cover", maxHeight: 130 }} />
+                </div>
+                <div style={{ flex: 1, textAlign: "center" }}>
+                  <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#9ab8cc", marginBottom: 5 }}>AFTER</div>
+                  {afterImage ? (
+                    <div style={{ position: "relative" }}>
+                      <img src={afterImage} alt="after" style={{ width: "100%", borderRadius: 8, objectFit: "cover", maxHeight: 130 }} />
+                      <button
+                        onClick={() => { setAfterImage(null); setCompareResult(null); }}
+                        style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.5)", color: "white", border: "none", borderRadius: "50%", width: 22, height: 22, cursor: "pointer", fontSize: 11 }}
+                      >✕</button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => afterInputRef.current?.click()}
+                      style={{
+                        width: "100%", maxHeight: 130, minHeight: 80,
+                        border: "2px dashed rgba(165,210,238,0.4)", borderRadius: 8,
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                        cursor: "pointer", background: "rgba(255,255,255,0.3)",
+                      }}
+                    >
+                      <div style={{ fontSize: 22 }}>📷</div>
+                      <div style={{ fontSize: 10, color: "#7facca", marginTop: 4 }}>탭해서 업로드</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <input
+              ref={afterInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: "none" }}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAfterImage(f); }}
+            />
+
+            {afterImage && !compareResult && (
+              <button
+                className="btn-primary"
+                onClick={compare}
+                disabled={comparing}
+                style={{ marginBottom: 0 }}
+              >
+                {comparing ? "🔍 비교 중..." : "✨ 얼마나 달라졌는지 봐줘"}
+              </button>
+            )}
+
+            {!afterImage && (
+              <button
+                onClick={() => afterInputRef.current?.click()}
+                style={{
+                  width: "100%", padding: "12px", borderRadius: 10,
+                  border: "1.5px dashed rgba(165,210,238,0.5)",
+                  background: "rgba(255,255,255,0.2)",
+                  color: "#7facca", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                }}
+              >
+                📸 정리 후 사진 올리기
+              </button>
+            )}
+
+            {/* 비교 결과 */}
+            {compareResult && (
+              <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+                {/* 점수 */}
+                <div style={{ textAlign: "center", padding: "10px 0" }}>
+                  <div style={{ fontSize: 9, letterSpacing: 2, color: "#9ab8cc", marginBottom: 6 }}>CLEAN SCORE</div>
+                  <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 4 }}>
+                    {Array.from({ length: 10 }).map((_, i) => (
+                      <div key={i} style={{
+                        width: 18, height: 18, borderRadius: "50%",
+                        background: i < compareResult.score ? "#1DB4A8" : "rgba(165,210,238,0.2)",
+                        transition: "background 0.2s",
+                      }} />
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 13, color: "#1DB4A8", fontWeight: 700 }}>{compareResult.score}/10</div>
+                </div>
+
+                {/* 변화 */}
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#9ab8cc", marginBottom: 6 }}>눈에 띄는 변화</div>
+                  {compareResult.changes.map((c, i) => (
+                    <div key={i} style={{ fontSize: 12, color: "#4e6e82", marginBottom: 4, display: "flex", gap: 6 }}>
+                      <span style={{ color: "#1DB4A8", flexShrink: 0 }}>✓</span>
+                      <span>{c}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 칭찬 */}
+                <div style={{
+                  background: "linear-gradient(135deg, rgba(29,180,168,0.12), rgba(29,180,168,0.06))",
+                  border: "1.5px solid rgba(29,180,168,0.3)",
+                  borderRadius: 12, padding: "14px 16px",
+                }}>
+                  <div style={{ fontSize: 9, letterSpacing: 1.5, color: "#1DB4A8", marginBottom: 8 }}>AI 한마디</div>
+                  <p style={{ fontSize: 13, color: "#2d5a4e", lineHeight: 1.8, margin: 0, fontWeight: 600 }}>
+                    🎉 {compareResult.praise}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <button className="btn-primary animate-fadeInUp animate-delay-1" onClick={() => router.push("/")}>
         {allDone ? "🏠 방 구조 완료! 다음에 또 써요" : "📸 다른 방 분석하기"}
