@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
 
 아래 JSON 형식으로 응답해주세요:
 {
+  "messScore": 0~100,
   "difficulty": "하|중|상",
   "difficultyScore": 1~10,
   "summary": "방 상태 한 줄 요약 (따뜻하고 판단 없는 톤으로)",
@@ -43,6 +44,7 @@ export async function POST(req: NextRequest) {
   "message": "격려 메시지 한 줄"
 }
 
+messScore: 방 어지러움 점수 (0=완벽하게 깨끗, 100=아무것도 안 보일 정도로 어지러움)
 steps는 에너지와 시간에 맞게 3~5개, 각 단계는 5~15분 이내로.`,
           },
         ],
