@@ -222,8 +222,8 @@ export default function Home() {
 
           <style>{`
             @keyframes robotFloat {
-              0%, 100% { transform: translateY(0); }
-              50% { transform: translateY(-8px); }
+              0%, 100% { transform: translateX(0); }
+              50% { transform: translateX(12px); }
             }
           `}</style>
         </div>
