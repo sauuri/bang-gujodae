@@ -238,14 +238,20 @@ export default function Home() {
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+              style={preview ? { padding: 0, overflow: "hidden" } : undefined}
             >
               {preview ? (
-                <>
+                <div style={{ position: "relative" }}>
                   <img src={preview} alt="preview" style={{
-                    width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 14,
+                    width: "100%", height: 200, objectFit: "cover", display: "block",
                   }} />
-                  <p style={{ marginTop: 6, fontSize: 11, color: "#bbb" }}>탭하면 교체</p>
-                </>
+                  <div style={{
+                    position: "absolute", bottom: 8, right: 8,
+                    background: "rgba(0,0,0,0.45)", color: "white",
+                    fontSize: 11, fontWeight: 700, padding: "4px 10px",
+                    borderRadius: 20, backdropFilter: "blur(4px)",
+                  }}>탭하면 교체</div>
+                </div>
               ) : (
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <div style={{
@@ -257,10 +263,11 @@ export default function Home() {
                   </div>
                   <div>
                     <p style={{ fontSize: 14, fontWeight: 800, color: "#1a2744", marginBottom: 3 }}>방 사진 올리기</p>
-                    <p style={{ fontSize: 11, color: "#c0c0c0" }}>탭하거나 드래그 · 자동 압축</p>
+                    <p style={{ fontSize: 11, color: "#c0c0c0" }}>탭하거나 드래그</p>
                   </div>
                 </div>
               )}
+
               <input ref={inputRef} type="file" accept="image/*" capture="environment"
                 style={{ display: "none" }}
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
