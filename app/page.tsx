@@ -151,31 +151,26 @@ export default function Home() {
         <div style={{
           position: "relative",
           background: "linear-gradient(160deg, #76C442 0%, #5A9E30 100%)",
-          padding: "44px 24px 80px",
+          padding: "28px 20px 20px",
           overflow: "hidden",
-          borderRadius: "0 0 32px 32px",
+          borderRadius: "0 0 28px 28px",
         }}>
-          {/* 배경 원형 장식 */}
           <div style={{
-            position: "absolute", top: -40, right: -40,
-            width: 180, height: 180, borderRadius: "50%",
+            position: "absolute", top: -30, right: -30,
+            width: 130, height: 130, borderRadius: "50%",
             background: "rgba(255,255,255,0.08)",
-          }} />
-          <div style={{
-            position: "absolute", bottom: -20, left: -20,
-            width: 120, height: 120, borderRadius: "50%",
-            background: "rgba(255,255,255,0.06)",
           }} />
 
           {/* 상단 바 */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 5,
               background: "rgba(255,255,255,0.22)",
-              borderRadius: 50, padding: "5px 16px",
+              borderRadius: 50, padding: "5px 14px",
             }}>
-              <span style={{ fontSize: 18, lineHeight: 1 }}>🚨</span>
-              <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: 1.2, color: "white" }}>방구조대</span>
+              <span style={{ fontSize: 16, lineHeight: 1 }}>🚨</span>
+              <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "white" }}>방구조대</span>
+              <span style={{ fontSize: 16, lineHeight: 1 }}>🚨</span>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               {streak.current > 0 && (
@@ -199,40 +194,42 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 텍스트 + 로봇 */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          {/* 텍스트 + 로봇 가로 배치 */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <h1 style={{
+                fontSize: 22, fontWeight: 900, lineHeight: 1.35,
+                color: "white", letterSpacing: -0.5,
+                textShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}>
+                방 사진 찍으면<br />
+                <span style={{ color: "#FFD54F" }}>지금 당장 할 것만</span><br />
+                뽑아줄게요.
+              </h1>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginTop: 6 }}>
+                에너지랑 시간에 맞는 순서만.
+              </p>
+            </div>
             <RobotSprite
               pose="idle"
-              size={180}
-              style={{ animation: "robotFloat 3s ease-in-out infinite", marginBottom: 16 }}
+              size={120}
+              style={{ flexShrink: 0, animation: "robotFloat 3s ease-in-out infinite" }}
             />
-            <h1 style={{
-              fontSize: 28, fontWeight: 900, lineHeight: 1.35,
-              color: "white", letterSpacing: -0.5,
-              textShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            }}>
-              방 사진 찍으면<br />
-              <span style={{ color: "#FFD54F" }}>지금 당장 할 것만</span><br />
-              뽑아줄게요.
-            </h1>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 8, lineHeight: 1.6 }}>
-              다 하라는 게 아니에요. 에너지랑 시간에 맞는 순서만.
-            </p>
           </div>
 
           <style>{`
             @keyframes robotFloat {
               0%, 100% { transform: translateX(0); }
-              50% { transform: translateX(12px); }
+              50% { transform: translateX(8px); }
             }
           `}</style>
         </div>
 
         {/* 본문 */}
-        <div style={{ padding: "0 20px", marginTop: -32 }}>
+        <div style={{ padding: "0 16px", marginTop: 14 }}>
 
           {/* 사진 업로드 */}
-          <div style={{ marginBottom: 14 }}>
+          <div style={{ marginBottom: 10 }}>
             <div
               className={`upload-zone${dragOver ? " drag-over" : ""}`}
               onClick={() => inputRef.current?.click()}
@@ -243,23 +240,22 @@ export default function Home() {
               {preview ? (
                 <>
                   <img src={preview} alt="preview" style={{
-                    width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 16,
+                    width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 14,
                   }} />
-                  <p style={{ marginTop: 10, fontSize: 12, color: "#bbb" }}>탭하면 교체</p>
+                  <p style={{ marginTop: 6, fontSize: 11, color: "#bbb" }}>탭하면 교체</p>
                 </>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <div style={{
-                    width: 76, height: 76, borderRadius: 22,
-                    background: "#F2FBEA",
-                    border: "1.5px solid #B5DFA0",
+                    width: 52, height: 52, borderRadius: 16, flexShrink: 0,
+                    background: "#F2FBEA", border: "1.5px solid #B5DFA0",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
-                    <span style={{ fontSize: 36 }}>📸</span>
+                    <span style={{ fontSize: 26 }}>📸</span>
                   </div>
                   <div>
-                    <p style={{ fontSize: 15, fontWeight: 800, color: "#1a2744", marginBottom: 5 }}>방 사진 올리기</p>
-                    <p style={{ fontSize: 12, color: "#c0c0c0" }}>탭하거나 드래그 · 자동 압축</p>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: "#1a2744", marginBottom: 3 }}>방 사진 올리기</p>
+                    <p style={{ fontSize: 11, color: "#c0c0c0" }}>탭하거나 드래그 · 자동 압축</p>
                   </div>
                 </div>
               )}
@@ -270,21 +266,20 @@ export default function Home() {
           </div>
 
           {/* 에너지 카드 */}
-          <div className="card" style={{ padding: "20px 22px", marginBottom: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#666" }}>지금 에너지</span>
-              <span style={{ fontSize: 22, fontWeight: 900, color: "#5A9E30" }}>
+          <div className="card" style={{ padding: "14px 16px", marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#666" }}>지금 에너지</span>
+              <span style={{ fontSize: 18, fontWeight: 900, color: "#5A9E30" }}>
                 {ENERGY_EMOJI[energy]}{" "}
-                <span style={{ fontSize: 20, color: "#1a2744" }}>{energy}</span>
-                <span style={{ fontSize: 12, color: "#ccc", fontWeight: 600 }}>/10</span>
+                <span style={{ fontSize: 16, color: "#1a2744" }}>{energy}</span>
+                <span style={{ fontSize: 11, color: "#ccc", fontWeight: 600 }}>/10</span>
               </span>
             </div>
 
-            {/* 에너지 바 */}
-            <div style={{ display: "flex", gap: 5, marginBottom: 14 }}>
+            <div style={{ display: "flex", gap: 4, marginBottom: 10 }}>
               {Array.from({ length: 10 }, (_, i) => (
                 <div key={i} style={{
-                  flex: 1, height: 7, borderRadius: 4,
+                  flex: 1, height: 6, borderRadius: 4,
                   background: i < energy ? "#76C442" : "#F2FBEA",
                   transition: "background 0.2s",
                 }} />
@@ -294,15 +289,15 @@ export default function Home() {
             <input type="range" min={1} max={10} value={energy}
               onChange={(e) => setEnergy(Number(e.target.value))}
               className="slider" />
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-              <span style={{ fontSize: 11, color: "#ccc" }}>방전 😵</span>
-              <span style={{ fontSize: 11, color: "#ccc" }}>풀충전 🚀</span>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+              <span style={{ fontSize: 10, color: "#ccc" }}>방전 😵</span>
+              <span style={{ fontSize: 10, color: "#ccc" }}>풀충전 🚀</span>
             </div>
           </div>
 
           {/* 시간 카드 */}
-          <div className="card" style={{ padding: "20px 22px", marginBottom: 22 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#666", marginBottom: 12 }}>
+          <div className="card" style={{ padding: "14px 16px", marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#666", marginBottom: 10 }}>
               ⏱ 쓸 수 있는 시간
             </div>
             <div className="time-grid">
@@ -323,7 +318,7 @@ export default function Home() {
             🚨 정리 순서 뽑기
           </button>
           {!imageB64 && (
-            <p style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 10 }}>
+            <p style={{ textAlign: "center", fontSize: 11, color: "#ccc", marginTop: 8 }}>
               사진을 먼저 올려주세요
             </p>
           )}

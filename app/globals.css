@@ -19,7 +19,7 @@ main { position: relative; z-index: 1; }
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.15s;
   text-align: center;
-  padding: 44px 20px;
+  padding: 20px 18px;
   box-shadow: 0 4px 20px rgba(118,196,66,0.10);
 }
 .upload-zone:hover, .upload-zone.drag-over {

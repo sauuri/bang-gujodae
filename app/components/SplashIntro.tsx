@@ -229,7 +229,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
             fontSize: 27, fontWeight: 900, color: "white",
             marginBottom: 5, letterSpacing: -0.5,
             textShadow: "0 2px 12px rgba(0,0,0,0.45)",
-          }}>방구조대</p>
+          }}>🚨 방구조대 🚨</p>
           <p style={{
             fontSize: 13, color: "rgba(255,255,255,0.85)",
             marginBottom: 18, textShadow: "0 1px 4px rgba(0,0,0,0.3)",
