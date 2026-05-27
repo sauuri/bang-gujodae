@@ -78,7 +78,6 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
 
     T.push(setTimeout(() => {
       setTransit(false);
-      setPose("idle");
       setArrived(true);
     }, cur + MOVE_MS));
 
@@ -179,31 +178,15 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
             style={{ transition: "width 0.35s ease, height 0.35s ease" }}
           />
 
-          {/* 빗자루 — 왼쪽 방향 */}
-          {(sweeping || arrived) && broomSide === "left" && (
+          {/* 빗자루 — 로봇 움직이는 동안 + 도착 후 계속 쓱싹 */}
+          {(sweeping || arrived) && (
             <div style={{
               position: "absolute",
-              left: -18,
+              ...(broomSide === "right"
+                ? { right: -18, transformOrigin: "30% 90%", animation: "scrubR 0.8s ease-in-out infinite" }
+                : { left: -18,  transformOrigin: "70% 90%", animation: "scrubL 0.8s ease-in-out infinite" }),
               bottom: 8,
               fontSize: 46,
-              transform: "rotate(30deg)",
-              transformOrigin: "70% 90%",
-              animation: sweeping ? "scrubL 0.8s ease-in-out infinite" : "none",
-              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
-              zIndex: 2,
-            }}>🧹</div>
-          )}
-
-          {/* 빗자루 — 오른쪽 방향 */}
-          {(sweeping || arrived) && broomSide === "right" && (
-            <div style={{
-              position: "absolute",
-              right: -18,
-              bottom: 8,
-              fontSize: 46,
-              transform: "scaleX(-1) rotate(30deg)",
-              transformOrigin: "30% 90%",
-              animation: sweeping ? "scrubR 0.8s ease-in-out infinite" : "none",
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
               zIndex: 2,
             }}>🧹</div>

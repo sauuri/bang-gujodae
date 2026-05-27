@@ -46,6 +46,7 @@ export default function Home() {
   const [timeLeft, setTimeLeft]       = useState("20분");
   const [loading, setLoading]         = useState(false);
   const [loadingMsg, setLoadingMsg]   = useState(LOADING_MSGS[0]);
+  const [sweepDir, setSweepDir]       = useState<"walkLeft" | "walkRight">("walkRight");
   const [dragOver, setDragOver]       = useState(false);
   const [streak, setStreak]           = useState({ current: 0, best: 0 });
   const [historyCount, setHistoryCount] = useState(0);
@@ -70,7 +71,10 @@ export default function Home() {
       i = (i + 1) % LOADING_MSGS.length;
       setLoadingMsg(LOADING_MSGS[i]);
     }, 1800);
-    return () => clearInterval(iv);
+    const sv = setInterval(() => {
+      setSweepDir(d => d === "walkRight" ? "walkLeft" : "walkRight");
+    }, 900);
+    return () => { clearInterval(iv); clearInterval(sv); };
   }, [loading]);
 
   async function handleFile(file: File) {
@@ -118,7 +122,7 @@ export default function Home() {
           zIndex: 99,
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20,
         }}>
-          <RobotSprite pose="idle" size={110} />
+          <RobotSprite pose={sweepDir} size={110} />
           <div style={{ fontSize: 18, fontWeight: 900, color: "#1a2744" }}>방 구조 중</div>
           <div style={{ fontSize: 13, color: "#8DC870", transition: "all 0.4s" }}>{loadingMsg}</div>
           <div style={{ width: 160, height: 5, background: "#DBEFC7", borderRadius: 4, overflow: "hidden" }}>
