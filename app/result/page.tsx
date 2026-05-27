@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import RobotSprite from "../components/RobotSprite";
 
 interface Step { order: number; title: string; duration: string; reason: string; }
 interface CompareResult { changes: string[]; praise: string; score: number; }
@@ -173,210 +174,224 @@ export default function ResultPage() {
   }
 
   return (
-    <main style={{ maxWidth: 460, margin: "0 auto", padding: "32px 20px 80px" }}>
+    <main style={{ maxWidth: 460, margin: "0 auto", padding: "0 0 80px", background: "#F2FBEA", minHeight: "100vh" }}>
 
       {/* 상단 헤더 */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#dcfce7", borderRadius: 50, padding: "5px 14px" }}>
-          <span style={{ fontSize: 14 }}>🚨</span>
-          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, color: "#16a34a" }}>방구조대</span>
-        </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {streak.current > 0 && (
-            <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 50, padding: "4px 12px", fontSize: 12, fontWeight: 800, color: "#ea580c" }}>
-              🔥 {streak.current}일 연속
+      <div style={{
+        background: "linear-gradient(160deg, #76C442 0%, #5A9E30 100%)",
+        padding: "44px 20px 24px",
+        borderRadius: "0 0 28px 28px",
+        marginBottom: 20,
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <RobotSprite pose="idle" size={52} />
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: "rgba(255,255,255,0.8)" }}>방구조대</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: "white" }}>구조 완료 보고서 🧹</div>
             </div>
-          )}
-          <button onClick={() => router.push("/")}
-            style={{ background: "#f3f4f6", border: "none", color: "#6b7280", fontSize: 12, padding: "6px 14px", borderRadius: 20, cursor: "pointer", fontWeight: 700 }}>
-            ← 다시
-          </button>
-        </div>
-      </div>
-
-      {/* 어지러움 점수 카드 */}
-      <div className="card" style={{ padding: "20px", marginBottom: 12 }}>
-        <MessScoreRing score={messScore} />
-        <div style={{ marginTop: 14, fontSize: 14, color: "#374151", lineHeight: 1.7, borderTop: "1px solid #f0f0f0", paddingTop: 14 }}>
-          {result.summary}
-        </div>
-      </div>
-
-      {/* 정리 순서 카드 */}
-      <div className="card" style={{ marginBottom: 12 }}>
-        <div style={{ padding: "16px 20px 0" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: "#111" }}>🧹 지금 할 순서</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? "#16a34a" : "#8e8e93" }}>
-              {allDone ? "완료 🎉" : `${checkedCount}/${result.steps.length}`}
-            </span>
           </div>
-          {anyDone && (
-            <div style={{ height: 4, background: "#e5e7eb", borderRadius: 4, marginBottom: 12 }}>
-              <div style={{ height: "100%", width: `${progress}%`, background: "#16a34a", borderRadius: 4, transition: "width 0.3s" }} />
-            </div>
-          )}
-        </div>
-
-        <div style={{ padding: "0 20px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
-          {result.steps.map((step, i) => (
-            <div key={i} onClick={() => toggle(i)} style={{
-              padding: "12px 14px", borderRadius: 14, border: "1.5px solid",
-              cursor: "pointer", transition: "all 0.2s",
-              background: checked[i] ? "#f0fdf4" : "#fafafa",
-              borderColor: checked[i] ? "#16a34a" : "#e5e7eb",
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
-                  <div style={{
-                    width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
-                    background: checked[i] ? "#16a34a" : "#e5e7eb",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontWeight: 900, color: checked[i] ? "white" : "#9ca3af",
-                    transition: "all 0.2s",
-                  }}>
-                    {checked[i] ? "✓" : step.order}
-                  </div>
-                  <span style={{ fontWeight: 700, fontSize: 13, color: checked[i] ? "#6b7280" : "#111", textDecoration: checked[i] ? "line-through" : "none" }}>
-                    {step.title}
-                  </span>
-                </div>
-                <span style={{ fontSize: 11, color: "#16a34a", background: "#dcfce7", padding: "2px 8px", borderRadius: 20, flexShrink: 0, marginLeft: 8, fontWeight: 700 }}>
-                  {step.duration}
-                </span>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {streak.current > 0 && (
+              <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: 50, padding: "4px 12px", fontSize: 12, fontWeight: 800, color: "white" }}>
+                🔥 {streak.current}일
               </div>
-              <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 5, marginLeft: 36 }}>{step.reason}</div>
-            </div>
-          ))}
-
-          {anyDone && (
-            <div style={{
-              padding: "10px 14px", borderRadius: 12,
-              background: allDone ? "#dcfce7" : "#f0fdf4",
-              border: `1.5px solid ${allDone ? "#16a34a" : "#bbf7d0"}`,
-              fontSize: 13, fontWeight: 700, color: "#16a34a",
-            }}>
-              {checkedCount === 1 && "✓ 시작했어요. 이게 제일 어려운 거예요."}
-              {checkedCount === 2 && "✓✓ 흐름이 생기고 있어요."}
-              {checkedCount >= 3 && !allDone && "✓✓✓ 거의 다 왔어요!"}
-              {allDone && "🎉 다 했어요. 방이 숨 쉬기 시작했어요."}
-            </div>
-          )}
+            )}
+            <button onClick={() => router.push("/")}
+              style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", fontSize: 12, padding: "6px 14px", borderRadius: 20, cursor: "pointer", fontWeight: 700 }}>
+              ← 다시
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* 오늘 안 해도 되는 것 */}
-      <div className="card" style={{ padding: "16px 20px", marginBottom: 12 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#8e8e93", letterSpacing: 0.5, marginBottom: 10 }}>오늘 안 해도 되는 것</div>
-        {result.skip?.map((s, i) => (
-          <div key={i} style={{ fontSize: 13, color: "#9ca3af", display: "flex", gap: 8, marginBottom: 5, textDecoration: "line-through" }}>
-            <span>✕</span><span>{s}</span>
-          </div>
-        ))}
-        <div style={{ fontSize: 13, color: "#6b7280", marginTop: 10, fontStyle: "italic" }}>{result.message}</div>
-      </div>
+      <div style={{ padding: "0 20px" }}>
 
-      {/* Before / After */}
-      {anyDone && (
+        {/* 어지러움 점수 카드 */}
+        <div className="card" style={{ padding: "20px", marginBottom: 12 }}>
+          <MessScoreRing score={messScore} />
+          <div style={{ marginTop: 14, fontSize: 14, color: "#374151", lineHeight: 1.7, borderTop: "1px solid #F2FBEA", paddingTop: 14 }}>
+            {result.summary}
+          </div>
+        </div>
+
+        {/* 정리 순서 카드 */}
         <div className="card" style={{ marginBottom: 12 }}>
           <div style={{ padding: "16px 20px 0" }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "#111", marginBottom: 4 }}>📸 Before / After</div>
-            <div style={{ fontSize: 12, color: "#8e8e93", marginBottom: 14 }}>같은 방향에서 찍으면 AI가 변화를 비교해줘요</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: "#1a2744" }}>🧹 지금 할 순서</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? "#5A9E30" : "#aaa" }}>
+                {allDone ? "완료 🎉" : `${checkedCount}/${result.steps.length}`}
+              </span>
+            </div>
+            {anyDone && (
+              <div style={{ height: 5, background: "#DBEFC7", borderRadius: 4, marginBottom: 12 }}>
+                <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg, #76C442, #5A9E30)", borderRadius: 4, transition: "width 0.3s" }} />
+              </div>
+            )}
           </div>
-          <div style={{ padding: "0 20px 20px" }}>
-            {result.imageB64 && (
-              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#8e8e93", marginBottom: 6, textAlign: "center" }}>BEFORE</div>
-                  <img src={result.imageB64} alt="before" style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: 130 }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#8e8e93", marginBottom: 6, textAlign: "center" }}>AFTER</div>
-                  {afterImage ? (
-                    <div style={{ position: "relative" }}>
-                      <img src={afterImage} alt="after" style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: 130 }} />
-                      <button onClick={() => { setAfterImage(null); setCompareResult(null); }}
-                        style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.5)", color: "white", border: "none", borderRadius: "50%", width: 22, height: 22, cursor: "pointer", fontSize: 10 }}>✕</button>
-                    </div>
-                  ) : (
-                    <div onClick={() => afterInputRef.current?.click()} style={{
-                      width: "100%", minHeight: 100, border: "2px dashed #bbf7d0", borderRadius: 10,
-                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                      cursor: "pointer", background: "#f0fdf4",
+
+          <div style={{ padding: "0 20px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+            {result.steps.map((step, i) => (
+              <div key={i} onClick={() => toggle(i)} style={{
+                padding: "12px 14px", borderRadius: 14, border: "1.5px solid",
+                cursor: "pointer", transition: "background 0.2s, border-color 0.2s",
+                background: checked[i] ? "#F2FBEA" : "#fafafa",
+                borderColor: checked[i] ? "#76C442" : "#e5e7eb",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+                    <div style={{
+                      width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                      background: checked[i] ? "#76C442" : "#e5e7eb",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 11, fontWeight: 900, color: checked[i] ? "white" : "#9ca3af",
+                      transition: "all 0.2s",
                     }}>
-                      <div style={{ fontSize: 24 }}>📷</div>
-                      <div style={{ fontSize: 10, color: "#16a34a", marginTop: 4, fontWeight: 700 }}>탭해서 업로드</div>
+                      {checked[i] ? "✓" : step.order}
                     </div>
-                  )}
+                    <span style={{ fontWeight: 700, fontSize: 13, color: checked[i] ? "#8DC870" : "#1a2744", textDecoration: checked[i] ? "line-through" : "none" }}>
+                      {step.title}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 11, color: "#5A9E30", background: "#DBEFC7", padding: "2px 8px", borderRadius: 20, flexShrink: 0, marginLeft: 8, fontWeight: 700 }}>
+                    {step.duration}
+                  </span>
                 </div>
+                <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 5, marginLeft: 36 }}>{step.reason}</div>
               </div>
-            )}
-            <input ref={afterInputRef} type="file" accept="image/*" capture="environment"
-              style={{ display: "none" }}
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAfterImage(f); }} />
+            ))}
 
-            {afterImage && !compareResult && (
-              <button className="btn-main" onClick={compare} disabled={comparing}>
-                {comparing ? "🔍 비교 중..." : "✨ 얼마나 달라졌는지 봐줘"}
-              </button>
-            )}
-            {!afterImage && (
-              <button onClick={() => afterInputRef.current?.click()}
-                style={{ width: "100%", padding: "12px", borderRadius: 12, border: "1.5px dashed #bbf7d0", background: "#f0fdf4", color: "#16a34a", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                📸 정리 후 사진 올리기
-              </button>
-            )}
-
-            {compareResult && (
-              <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ textAlign: "center", padding: "8px 0" }}>
-                  <div style={{ fontSize: 11, color: "#8e8e93", marginBottom: 6 }}>변화 점수</div>
-                  <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 4 }}>
-                    {Array.from({ length: 10 }).map((_, i) => (
-                      <div key={i} style={{ width: 18, height: 18, borderRadius: "50%", background: i < compareResult.score ? "#16a34a" : "#e5e7eb" }} />
-                    ))}
-                  </div>
-                  <div style={{ fontSize: 14, color: "#16a34a", fontWeight: 800 }}>{compareResult.score}/10</div>
-                </div>
-                {compareResult.changes.map((c, i) => (
-                  <div key={i} style={{ fontSize: 13, color: "#374151", display: "flex", gap: 8 }}>
-                    <span style={{ color: "#16a34a" }}>✓</span><span>{c}</span>
-                  </div>
-                ))}
-                <div style={{ background: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: 12, padding: "14px 16px", fontSize: 13, color: "#166534", lineHeight: 1.8 }}>
-                  🎉 {compareResult.praise}
-                </div>
+            {anyDone && (
+              <div style={{
+                padding: "10px 14px", borderRadius: 12,
+                background: allDone ? "#DBEFC7" : "#F2FBEA",
+                border: `1.5px solid ${allDone ? "#76C442" : "#B5DFA0"}`,
+                fontSize: 13, fontWeight: 700, color: "#5A9E30",
+              }}>
+                {checkedCount === 1 && "✓ 시작했어요. 이게 제일 어려운 거예요."}
+                {checkedCount === 2 && "✓✓ 흐름이 생기고 있어요."}
+                {checkedCount >= 3 && !allDone && "✓✓✓ 거의 다 왔어요!"}
+                {allDone && "🎉 다 했어요. 방이 숨 쉬기 시작했어요."}
               </div>
             )}
           </div>
         </div>
-      )}
 
-      {/* 기록 저장 버튼 */}
-      {anyDone && !saved && (
-        <button className="btn-main" onClick={handleSave} style={{ marginBottom: 10 }}>
-          💾 오늘 기록 저장하기
-        </button>
-      )}
-      {saved && (
-        <div style={{ textAlign: "center", padding: "14px", background: "#f0fdf4", borderRadius: 14, marginBottom: 10, fontSize: 14, fontWeight: 800, color: "#16a34a" }}>
-          ✓ 저장 완료! 🔥 {streak.current}일 연속 정리 중
+        {/* 오늘 안 해도 되는 것 */}
+        <div className="card" style={{ padding: "16px 20px", marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 10 }}>오늘 안 해도 되는 것</div>
+          {result.skip?.map((s, i) => (
+            <div key={i} style={{ fontSize: 13, color: "#d1d5db", display: "flex", gap: 8, marginBottom: 5, textDecoration: "line-through" }}>
+              <span>✕</span><span>{s}</span>
+            </div>
+          ))}
+          <div style={{ fontSize: 13, color: "#6b7280", marginTop: 10, fontStyle: "italic" }}>{result.message}</div>
         </div>
-      )}
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        <button onClick={() => router.push("/history")}
-          style={{ flex: 1, padding: "14px", borderRadius: 14, border: "1.5px solid #e5e7eb", background: "#fff", color: "#374151", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-          📋 기록 보기
+        {/* Before / After */}
+        {anyDone && (
+          <div className="card" style={{ marginBottom: 12 }}>
+            <div style={{ padding: "16px 20px 0" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#1a2744", marginBottom: 4 }}>📸 Before / After</div>
+              <div style={{ fontSize: 12, color: "#aaa", marginBottom: 14 }}>같은 방향에서 찍으면 AI가 변화를 비교해줘요</div>
+            </div>
+            <div style={{ padding: "0 20px 20px" }}>
+              {result.imageB64 && (
+                <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#aaa", marginBottom: 6, textAlign: "center" }}>BEFORE</div>
+                    <img src={result.imageB64} alt="before" style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: 130 }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#aaa", marginBottom: 6, textAlign: "center" }}>AFTER</div>
+                    {afterImage ? (
+                      <div style={{ position: "relative" }}>
+                        <img src={afterImage} alt="after" style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: 130 }} />
+                        <button onClick={() => { setAfterImage(null); setCompareResult(null); }}
+                          style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.5)", color: "white", border: "none", borderRadius: "50%", width: 22, height: 22, cursor: "pointer", fontSize: 10 }}>✕</button>
+                      </div>
+                    ) : (
+                      <div onClick={() => afterInputRef.current?.click()} style={{
+                        width: "100%", minHeight: 100, border: "2px dashed #9FD080", borderRadius: 10,
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                        cursor: "pointer", background: "#F2FBEA",
+                      }}>
+                        <div style={{ fontSize: 24 }}>📷</div>
+                        <div style={{ fontSize: 10, color: "#76C442", marginTop: 4, fontWeight: 700 }}>탭해서 업로드</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              <input ref={afterInputRef} type="file" accept="image/*" capture="environment"
+                style={{ display: "none" }}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAfterImage(f); }} />
+
+              {afterImage && !compareResult && (
+                <button className="btn-main" onClick={compare} disabled={comparing}>
+                  {comparing ? "🔍 비교 중..." : "✨ 얼마나 달라졌는지 봐줘"}
+                </button>
+              )}
+              {!afterImage && (
+                <button onClick={() => afterInputRef.current?.click()}
+                  style={{ width: "100%", padding: "12px", borderRadius: 12, border: "1.5px dashed #9FD080", background: "#F2FBEA", color: "#76C442", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                  📸 정리 후 사진 올리기
+                </button>
+              )}
+
+              {compareResult && (
+                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ textAlign: "center", padding: "8px 0" }}>
+                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>변화 점수</div>
+                    <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 4 }}>
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <div key={i} style={{ width: 18, height: 18, borderRadius: "50%", background: i < compareResult.score ? "#76C442" : "#e5e7eb" }} />
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 14, color: "#5A9E30", fontWeight: 800 }}>{compareResult.score}/10</div>
+                  </div>
+                  {compareResult.changes.map((c, i) => (
+                    <div key={i} style={{ fontSize: 13, color: "#374151", display: "flex", gap: 8 }}>
+                      <span style={{ color: "#76C442" }}>✓</span><span>{c}</span>
+                    </div>
+                  ))}
+                  <div style={{ background: "#DBEFC7", border: "1.5px solid #9FD080", borderRadius: 12, padding: "14px 16px", fontSize: 13, color: "#1a2744", lineHeight: 1.8 }}>
+                    🎉 {compareResult.praise}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 기록 저장 버튼 */}
+        {anyDone && !saved && (
+          <button className="btn-main" onClick={handleSave} style={{ marginBottom: 10 }}>
+            💾 오늘 기록 저장하기
+          </button>
+        )}
+        {saved && (
+          <div style={{ textAlign: "center", padding: "14px", background: "#DBEFC7", borderRadius: 14, marginBottom: 10, fontSize: 14, fontWeight: 800, color: "#5A9E30" }}>
+            ✓ 저장 완료! 🔥 {streak.current}일 연속 정리 중
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+          <button onClick={() => router.push("/history")}
+            style={{ flex: 1, padding: "14px", borderRadius: 14, border: "1.5px solid #e5e7eb", background: "#fff", color: "#555", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            📋 기록 보기
+          </button>
+          <button onClick={handleShare}
+            style={{ flex: 1, padding: "14px", borderRadius: 14, border: "1.5px solid #9FD080", background: "#F2FBEA", color: "#5A9E30", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            🔗 공유
+          </button>
+        </div>
+        <button className="btn-main" onClick={() => router.push("/")}>
+          {allDone ? "🏠 완료! 다음에 또" : "📸 다른 방 분석하기"}
         </button>
-        <button onClick={handleShare}
-          style={{ flex: 1, padding: "14px", borderRadius: 14, border: "1.5px solid #bbf7d0", background: "#f0fdf4", color: "#16a34a", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-          🔗 공유
-        </button>
+
       </div>
-      <button className="btn-main" onClick={() => router.push("/")}>
-        {allDone ? "🏠 완료! 다음에 또" : "📸 다른 방 분석하기"}
-      </button>
     </main>
   );
 }

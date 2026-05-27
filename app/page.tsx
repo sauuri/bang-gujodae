@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import SplashIntro from "./components/SplashIntro";
+import RobotSprite from "./components/RobotSprite";
 
 async function resizeImage(file: File): Promise<string> {
   return new Promise((resolve) => {
@@ -29,27 +31,26 @@ const LOADING_MSGS = [
   "거의 다 됐어요...",
 ];
 
-const ONBOARDING_STEPS = [
-  { emoji: "📸", title: "방 사진을 찍어요", desc: "전체 방이 보이게 찍으면 더 정확해요.\n어두워도 괜찮아요." },
-  { emoji: "⚡", title: "에너지랑 시간 입력", desc: "지금 상태에 맞게 AI가\n딱 맞는 순서를 뽑아줘요." },
-  { emoji: "🧹", title: "지금 당장 할 것만", desc: "전부 다 하라는 게 아니에요.\n오늘 할 수 있는 것만." },
-];
+const ENERGY_EMOJI: Record<number, string> = {
+  1: "😵", 2: "😩", 3: "😮‍💨", 4: "😐", 5: "🙂",
+  6: "😊", 7: "💪", 8: "⚡", 9: "🔥", 10: "🚀",
+};
 
 export default function Home() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [preview, setPreview]     = useState<string | null>(null);
-  const [imageB64, setImageB64]   = useState<string | null>(null);
-  const [energy, setEnergy]       = useState(5);
-  const [timeLeft, setTimeLeft]   = useState("20분");
-  const [loading, setLoading]     = useState(false);
-  const [loadingMsg, setLoadingMsg] = useState(LOADING_MSGS[0]);
-  const [dragOver, setDragOver]   = useState(false);
-  const [streak, setStreak]       = useState({ current: 0, best: 0 });
+  const [preview, setPreview]         = useState<string | null>(null);
+  const [imageB64, setImageB64]       = useState<string | null>(null);
+  const [energy, setEnergy]           = useState(5);
+  const [timeLeft, setTimeLeft]       = useState("20분");
+  const [loading, setLoading]         = useState(false);
+  const [loadingMsg, setLoadingMsg]   = useState(LOADING_MSGS[0]);
+  const [dragOver, setDragOver]       = useState(false);
+  const [streak, setStreak]           = useState({ current: 0, best: 0 });
   const [historyCount, setHistoryCount] = useState(0);
-  const [showOnboard, setShowOnboard] = useState(false);
-  const [onboardStep, setOnboardStep] = useState(0);
+  const [showSplash, setShowSplash]   = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     try {
@@ -58,8 +59,9 @@ export default function Home() {
       const h = localStorage.getItem("bangHistory");
       if (h) setHistoryCount(JSON.parse(h).length);
       const seen = localStorage.getItem("bangOnboarded");
-      if (!seen) setShowOnboard(true);
+      if (!seen) setShowSplash(true);
     } catch {}
+    setInitialized(true);
   }, []);
 
   useEffect(() => {
@@ -99,164 +101,236 @@ export default function Home() {
     }
   }
 
-  function finishOnboard() {
+  function finishSplash() {
     localStorage.setItem("bangOnboarded", "1");
-    setShowOnboard(false);
+    setShowSplash(false);
   }
 
   return (
     <>
-      {/* 온보딩 오버레이 */}
-      {showOnboard && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100,
-          display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
-        }}>
-          <div style={{ background: "#fff", borderRadius: 24, padding: "36px 28px", maxWidth: 360, width: "100%", textAlign: "center" }}>
-            <div style={{ fontSize: 64, marginBottom: 20 }}>{ONBOARDING_STEPS[onboardStep].emoji}</div>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: "#111", marginBottom: 10 }}>
-              {ONBOARDING_STEPS[onboardStep].title}
-            </h2>
-            <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.8, whiteSpace: "pre-line", marginBottom: 28 }}>
-              {ONBOARDING_STEPS[onboardStep].desc}
-            </p>
-            <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 24 }}>
-              {ONBOARDING_STEPS.map((_, i) => (
-                <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i === onboardStep ? "#16a34a" : "#e5e7eb" }} />
-              ))}
-            </div>
-            {onboardStep < ONBOARDING_STEPS.length - 1 ? (
-              <button onClick={() => setOnboardStep(s => s + 1)}
-                style={{ width: "100%", padding: "14px", borderRadius: 14, border: "none", background: "#16a34a", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
-                다음 →
-              </button>
-            ) : (
-              <button onClick={finishOnboard}
-                style={{ width: "100%", padding: "14px", borderRadius: 14, border: "none", background: "#16a34a", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
-                🚨 시작하기
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      {initialized && showSplash && <SplashIntro onDone={finishSplash} />}
 
       {/* 로딩 오버레이 */}
       {loading && (
         <div style={{
-          position: "fixed", inset: 0, background: "rgba(255,255,255,0.92)", zIndex: 99,
+          position: "fixed", inset: 0,
+          background: "rgba(238,246,255,0.96)",
+          backdropFilter: "blur(14px)",
+          zIndex: 99,
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20,
         }}>
-          <div style={{ fontSize: 64, animation: "spin 1.5s linear infinite" }}>🚨</div>
-          <div style={{ fontSize: 18, fontWeight: 900, color: "#16a34a" }}>방 구조 중</div>
-          <div style={{ fontSize: 14, color: "#6b7280", transition: "all 0.4s" }}>{loadingMsg}</div>
-          <div style={{ width: 180, height: 4, background: "#e5e7eb", borderRadius: 4, overflow: "hidden", marginTop: 8 }}>
-            <div style={{ height: "100%", background: "#16a34a", borderRadius: 4, animation: "progress 3s ease-in-out infinite" }} />
+          <RobotSprite pose="idle" size={110} />
+          <div style={{ fontSize: 18, fontWeight: 900, color: "#1a2744" }}>방 구조 중</div>
+          <div style={{ fontSize: 13, color: "#8DC870", transition: "all 0.4s" }}>{loadingMsg}</div>
+          <div style={{ width: 160, height: 5, background: "#DBEFC7", borderRadius: 4, overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              background: "linear-gradient(90deg, #76C442, #5A9E30)",
+              borderRadius: 4,
+              animation: "progress 3s ease-in-out infinite",
+            }} />
           </div>
           <style>{`
-            @keyframes spin { 0%{transform:rotate(-10deg)} 50%{transform:rotate(10deg)} 100%{transform:rotate(-10deg)} }
+            @keyframes robotBounce {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-12px); }
+            }
             @keyframes progress { 0%{width:0%} 80%{width:90%} 100%{width:90%} }
           `}</style>
         </div>
       )}
 
-      <main style={{ maxWidth: 460, margin: "0 auto", padding: "40px 20px 80px" }}>
+      <main style={{
+        maxWidth: 440,
+        margin: "0 auto",
+        padding: "0 0 80px",
+        visibility: (!initialized || showSplash) ? "hidden" : "visible",
+      }}>
 
-        {/* 헤더 */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#dcfce7", borderRadius: 50, padding: "5px 14px", marginBottom: 14 }}>
-              <span style={{ fontSize: 14 }}>🚨</span>
-              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, color: "#16a34a" }}>방구조대</span>
+        {/* 상단 히어로 배너 */}
+        <div style={{
+          position: "relative",
+          background: "linear-gradient(160deg, #76C442 0%, #5A9E30 100%)",
+          padding: "44px 24px 80px",
+          overflow: "hidden",
+          borderRadius: "0 0 32px 32px",
+        }}>
+          {/* 배경 원형 장식 */}
+          <div style={{
+            position: "absolute", top: -40, right: -40,
+            width: 180, height: 180, borderRadius: "50%",
+            background: "rgba(255,255,255,0.08)",
+          }} />
+          <div style={{
+            position: "absolute", bottom: -20, left: -20,
+            width: 120, height: 120, borderRadius: "50%",
+            background: "rgba(255,255,255,0.06)",
+          }} />
+
+          {/* 상단 바 */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              background: "rgba(255,255,255,0.22)",
+              borderRadius: 50, padding: "5px 16px",
+            }}>
+              <span style={{ fontSize: 18, lineHeight: 1 }}>🚨</span>
+              <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: 1.2, color: "white" }}>방구조대</span>
             </div>
-            <h1 style={{ fontSize: 28, fontWeight: 900, lineHeight: 1.35, color: "#111", marginBottom: 8 }}>
-              방 사진 찍으면<br />
-              <span style={{ color: "#16a34a" }}>지금 당장 할 것만</span><br />
-              뽑아줄게요.
-            </h1>
-            <p style={{ fontSize: 13, color: "#8e8e93", lineHeight: 1.7 }}>다 하라는 게 아니에요. 에너지랑 시간에 맞는 순서만.</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              {streak.current > 0 && (
+                <div style={{
+                  background: "rgba(255,255,255,0.2)",
+                  borderRadius: 50, padding: "5px 12px",
+                  fontSize: 12, fontWeight: 800, color: "white",
+                }}>
+                  🔥 {streak.current}일
+                </div>
+              )}
+              {historyCount > 0 && (
+                <div onClick={() => router.push("/history")} style={{
+                  background: "rgba(255,255,255,0.2)",
+                  borderRadius: 50, padding: "5px 12px",
+                  fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer",
+                }}>
+                  📋 {historyCount}회
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* 텍스트 + 로봇 */}
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+            <div>
+              <h1 style={{
+                fontSize: 28, fontWeight: 900, lineHeight: 1.35,
+                color: "white", letterSpacing: -0.5,
+                textShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}>
+                방 사진 찍으면<br />
+                <span style={{ color: "#FFD54F" }}>지금 당장 할 것만</span><br />
+                뽑아줄게요.
+              </h1>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 8, lineHeight: 1.6 }}>
+                다 하라는 게 아니에요.<br />에너지랑 시간에 맞는 순서만.
+              </p>
+            </div>
+            <RobotSprite
+              pose="idle"
+              size={130}
+              style={{ flexShrink: 0, animation: "robotFloat 3s ease-in-out infinite" }}
+            />
+          </div>
+
+          <style>{`
+            @keyframes robotFloat {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-8px); }
+            }
+          `}</style>
         </div>
 
-        {/* 스트릭 / 기록 배지 */}
-        {(streak.current > 0 || historyCount > 0) && (
-          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-            {streak.current > 0 && (
-              <div style={{ flex: 1, background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 14, padding: "10px 14px", textAlign: "center" }}>
-                <div style={{ fontSize: 20, fontWeight: 900, color: "#ea580c" }}>🔥 {streak.current}일</div>
-                <div style={{ fontSize: 10, color: "#9a3412", fontWeight: 700, marginTop: 2 }}>연속 구조 중</div>
-              </div>
-            )}
-            {historyCount > 0 && (
-              <div onClick={() => router.push("/history")} style={{ flex: 1, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 14, padding: "10px 14px", textAlign: "center", cursor: "pointer" }}>
-                <div style={{ fontSize: 20, fontWeight: 900, color: "#16a34a" }}>{historyCount}번</div>
-                <div style={{ fontSize: 10, color: "#166534", fontWeight: 700, marginTop: 2 }}>방 구조 완료 →</div>
-              </div>
-            )}
-          </div>
-        )}
+        {/* 본문 */}
+        <div style={{ padding: "0 20px", marginTop: -32 }}>
 
-        {/* 사진 업로드 */}
-        <div style={{ marginBottom: 14 }}>
-          <div
-            className={`upload-zone${dragOver ? " drag-over" : ""}`}
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
-          >
-            {preview ? (
-              <>
-                <img src={preview} alt="preview" style={{ width: "100%", maxHeight: 240, objectFit: "cover", borderRadius: 12 }} />
-                <p style={{ marginTop: 10, fontSize: 12, color: "#8e8e93" }}>탭하면 교체</p>
-              </>
-            ) : (
-              <>
-                <div style={{ fontSize: 58, marginBottom: 14 }}>📸</div>
-                <p style={{ fontSize: 16, fontWeight: 900, color: "#16a34a", marginBottom: 6 }}>방 사진 올리기</p>
-                <p style={{ fontSize: 13, color: "#6b7280" }}>탭하거나 드래그 · 자동 압축</p>
-              </>
-            )}
-            <input ref={inputRef} type="file" accept="image/*" capture="environment"
-              style={{ display: "none" }}
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+          {/* 사진 업로드 */}
+          <div style={{ marginBottom: 14 }}>
+            <div
+              className={`upload-zone${dragOver ? " drag-over" : ""}`}
+              onClick={() => inputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+            >
+              {preview ? (
+                <>
+                  <img src={preview} alt="preview" style={{
+                    width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 16,
+                  }} />
+                  <p style={{ marginTop: 10, fontSize: 12, color: "#bbb" }}>탭하면 교체</p>
+                </>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+                  <div style={{
+                    width: 76, height: 76, borderRadius: 22,
+                    background: "#F2FBEA",
+                    border: "1.5px solid #B5DFA0",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <span style={{ fontSize: 36 }}>📸</span>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 15, fontWeight: 800, color: "#1a2744", marginBottom: 5 }}>방 사진 올리기</p>
+                    <p style={{ fontSize: 12, color: "#c0c0c0" }}>탭하거나 드래그 · 자동 압축</p>
+                  </div>
+                </div>
+              )}
+              <input ref={inputRef} type="file" accept="image/*" capture="environment"
+                style={{ display: "none" }}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+            </div>
           </div>
-        </div>
 
-        {/* 에너지 + 시간 */}
-        <div className="card" style={{ marginBottom: 14 }}>
-          <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid #f0f0f0" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#8e8e93" }}>지금 에너지</span>
-              <span style={{ fontSize: 28, fontWeight: 900, color: "#16a34a", lineHeight: 1 }}>
-                {energy}<span style={{ fontSize: 14, color: "#ccc", fontWeight: 600 }}>/10</span>
+          {/* 에너지 카드 */}
+          <div className="card" style={{ padding: "20px 22px", marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#666" }}>지금 에너지</span>
+              <span style={{ fontSize: 22, fontWeight: 900, color: "#5A9E30" }}>
+                {ENERGY_EMOJI[energy]}{" "}
+                <span style={{ fontSize: 20, color: "#1a2744" }}>{energy}</span>
+                <span style={{ fontSize: 12, color: "#ccc", fontWeight: 600 }}>/10</span>
               </span>
             </div>
+
+            {/* 에너지 바 */}
+            <div style={{ display: "flex", gap: 5, marginBottom: 14 }}>
+              {Array.from({ length: 10 }, (_, i) => (
+                <div key={i} style={{
+                  flex: 1, height: 7, borderRadius: 4,
+                  background: i < energy ? "#76C442" : "#F2FBEA",
+                  transition: "background 0.2s",
+                }} />
+              ))}
+            </div>
+
             <input type="range" min={1} max={10} value={energy}
-              onChange={(e) => setEnergy(Number(e.target.value))} className="slider" />
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-              <span style={{ fontSize: 11, color: "#ccc" }}>방전 😮‍💨</span>
-              <span style={{ fontSize: 11, color: "#ccc" }}>충전 ⚡</span>
+              onChange={(e) => setEnergy(Number(e.target.value))}
+              className="slider" />
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+              <span style={{ fontSize: 11, color: "#ccc" }}>방전 😵</span>
+              <span style={{ fontSize: 11, color: "#ccc" }}>풀충전 🚀</span>
             </div>
           </div>
-          <div style={{ padding: "16px 20px 20px" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#8e8e93", marginBottom: 12 }}>쓸 수 있는 시간</div>
+
+          {/* 시간 카드 */}
+          <div className="card" style={{ padding: "20px 22px", marginBottom: 22 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#666", marginBottom: 12 }}>
+              ⏱ 쓸 수 있는 시간
+            </div>
             <div className="time-grid">
               {["10분", "20분", "30분", "1시간"].map((t) => (
-                <button key={t} className={`time-btn${timeLeft === t ? " active" : ""}`}
-                  onClick={() => setTimeLeft(t)}>{t}</button>
+                <button
+                  key={t}
+                  className={`time-btn${timeLeft === t ? " active" : ""}`}
+                  onClick={() => setTimeLeft(t)}
+                >
+                  {t}
+                </button>
               ))}
             </div>
           </div>
+
+          {/* 출동 버튼 */}
+          <button className="btn-main" onClick={handleSubmit} disabled={loading || !imageB64}>
+            🚨 정리 순서 뽑기
+          </button>
+          {!imageB64 && (
+            <p style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 10 }}>
+              사진을 먼저 올려주세요
+            </p>
+          )}
+
         </div>
-
-        {/* 출동 버튼 */}
-        <button className="btn-main" onClick={handleSubmit} disabled={loading || !imageB64}>
-          🚨 정리 순서 뽑기
-        </button>
-        {!imageB64 && (
-          <p style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 10 }}>사진을 먼저 올려주세요</p>
-        )}
-
       </main>
     </>
   );
