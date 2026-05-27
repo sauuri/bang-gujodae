@@ -15,10 +15,24 @@ const WALK_FRAMES = [
   "/robot-walk-l1.png",
   "/robot-walk-l2.png",
   "/robot-walk-l3.png",
-  "/robot-walk-l2.png", // 자연스러운 루프를 위해 중간 프레임 반복
+  "/robot-walk-l2.png",
 ];
 
-export type RobotPose = "idle" | "walkLeft" | "walkRight";
+// 점프/축하 프레임
+const CELEBRATE_FRAMES = [
+  "/robot-jump-1.png",
+  "/robot-jump-2.png",
+  "/robot-jump-3.png",
+  "/robot-jump-4.png",
+  "/robot-jump-5.png",
+  "/robot-jump-6.png",
+  "/robot-jump-7.png",
+  "/robot-jump-8.png",
+  "/robot-jump-9.png",
+  "/robot-jump-10.png",
+];
+
+export type RobotPose = "idle" | "walkLeft" | "walkRight" | "celebrate";
 
 interface Props {
   pose?: RobotPose;
@@ -31,9 +45,10 @@ export default function RobotSprite({ pose = "idle", size = 120, style, classNam
   const [frameIdx, setFrameIdx] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const isIdle   = pose === "idle";
-  const frames   = isIdle ? IDLE_FRAMES : WALK_FRAMES;
-  const fps      = isIdle ? 2.5 : 5; // idle=느린 숨쉬기, walk=빗자루 속도에 맞춤
+  const isIdle      = pose === "idle";
+  const isCelebrate = pose === "celebrate";
+  const frames   = isIdle ? IDLE_FRAMES : isCelebrate ? CELEBRATE_FRAMES : WALK_FRAMES;
+  const fps      = isIdle ? 2.5 : isCelebrate ? 8 : 5;
   const flipped  = pose === "walkRight";
 
   useEffect(() => {

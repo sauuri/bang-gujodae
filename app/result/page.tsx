@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import RobotSprite from "../components/RobotSprite";
+import CleaningEnding from "../components/CleaningEnding";
 
 interface Step { order: number; title: string; duration: string; reason: string; }
 interface CompareResult { changes: string[]; praise: string; score: number; }
@@ -92,6 +93,8 @@ export default function ResultPage() {
   const [compareResult, setCompareResult] = useState<CompareResult | null>(null);
   const [saved, setSaved] = useState(false);
   const [streak, setStreak] = useState({ current: 0, best: 0 });
+  const [showEnding, setShowEnding] = useState(false);
+  const [endingTriggered, setEndingTriggered] = useState(false);
   const afterInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -116,6 +119,11 @@ export default function ResultPage() {
     const next = [...checked];
     next[i] = !next[i];
     setChecked(next);
+    const doneCount = next.filter(Boolean).length;
+    if (doneCount === next.length && !endingTriggered) {
+      setEndingTriggered(true);
+      setTimeout(() => setShowEnding(true), 300);
+    }
   }
 
   async function handleShare() {
@@ -174,6 +182,14 @@ export default function ResultPage() {
   }
 
   return (
+    <>
+    {showEnding && (
+      <CleaningEnding
+        beforeImage={result?.imageB64}
+        afterImage={afterImage ?? undefined}
+        onClose={() => setShowEnding(false)}
+      />
+    )}
     <main style={{ maxWidth: 460, margin: "0 auto", padding: "0 0 80px", background: "#F2FBEA", minHeight: "100vh" }}>
 
       {/* 상단 헤더 */}
@@ -393,5 +409,6 @@ export default function ResultPage() {
 
       </div>
     </main>
+    </>
   );
 }
