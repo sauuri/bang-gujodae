@@ -179,31 +179,31 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
             style={{ transition: "width 0.35s ease, height 0.35s ease" }}
           />
 
-          {/* 빗자루 — 왼쪽 방향 (손이 왼쪽 앞에 있음) */}
+          {/* 빗자루 — 왼쪽 방향 */}
           {(sweeping || arrived) && broomSide === "left" && (
             <div style={{
               position: "absolute",
               left: -18,
-              bottom: 28,
+              bottom: 8,
               fontSize: 46,
               transform: "rotate(30deg)",
               transformOrigin: "70% 90%",
-              animation: sweeping ? "scrubL 0.55s ease-in-out infinite" : "none",
+              animation: sweeping ? "scrubL 0.8s ease-in-out infinite" : "none",
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
               zIndex: 2,
             }}>🧹</div>
           )}
 
-          {/* 빗자루 — 오른쪽 방향 (scaleX -1 된 로봇, 손이 오른쪽 앞) */}
+          {/* 빗자루 — 오른쪽 방향 */}
           {(sweeping || arrived) && broomSide === "right" && (
             <div style={{
               position: "absolute",
               right: -18,
-              bottom: 28,
+              bottom: 8,
               fontSize: 46,
               transform: "scaleX(-1) rotate(30deg)",
               transformOrigin: "30% 90%",
-              animation: sweeping ? "scrubR 0.55s ease-in-out infinite" : "none",
+              animation: sweeping ? "scrubR 0.8s ease-in-out infinite" : "none",
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
               zIndex: 2,
             }}>🧹</div>
