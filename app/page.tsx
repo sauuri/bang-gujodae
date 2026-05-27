@@ -200,26 +200,24 @@ export default function Home() {
           </div>
 
           {/* 텍스트 + 로봇 */}
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-            <div>
-              <h1 style={{
-                fontSize: 28, fontWeight: 900, lineHeight: 1.35,
-                color: "white", letterSpacing: -0.5,
-                textShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              }}>
-                방 사진 찍으면<br />
-                <span style={{ color: "#FFD54F" }}>지금 당장 할 것만</span><br />
-                뽑아줄게요.
-              </h1>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 8, lineHeight: 1.6 }}>
-                다 하라는 게 아니에요.<br />에너지랑 시간에 맞는 순서만.
-              </p>
-            </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
             <RobotSprite
               pose="idle"
-              size={130}
-              style={{ flexShrink: 0, animation: "robotFloat 3s ease-in-out infinite" }}
+              size={180}
+              style={{ animation: "robotFloat 3s ease-in-out infinite", marginBottom: 16 }}
             />
+            <h1 style={{
+              fontSize: 28, fontWeight: 900, lineHeight: 1.35,
+              color: "white", letterSpacing: -0.5,
+              textShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}>
+              방 사진 찍으면<br />
+              <span style={{ color: "#FFD54F" }}>지금 당장 할 것만</span><br />
+              뽑아줄게요.
+            </h1>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 8, lineHeight: 1.6 }}>
+              다 하라는 게 아니에요. 에너지랑 시간에 맞는 순서만.
+            </p>
           </div>
 
           <style>{`
