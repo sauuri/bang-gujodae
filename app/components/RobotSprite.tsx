@@ -58,7 +58,7 @@ export default function RobotSprite({ pose = "idle", size = 120, style, classNam
         objectFit: "contain",
         display: "block",
         transform: flipped ? "scaleX(-1)" : "none",
-        mixBlendMode: "multiply",
+
         imageRendering: "auto",
         ...style,
       }}
