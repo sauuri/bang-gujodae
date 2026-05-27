@@ -120,14 +120,16 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
       <div style={{
         position: "absolute",
         bottom: "38%",
-        left: `${robLeft}%`,
+        left: "50%",
         transform: "translateX(-50%)",
-        transition: transit ? `left ${MOVE_MS}ms cubic-bezier(0.4,0,0.2,1)` : "none",
         zIndex: 20,
         pointerEvents: "none",
+        width: "min(260px, 80vw)",
+        textAlign: "center",
       }}>
         {msgOn && msgIdx >= 0 && (
           <div style={{
+            display: "inline-block",
             background: "white",
             border: "2px solid #5BB8F5",
             borderRadius: 20,
@@ -135,7 +137,6 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
             fontSize: 13,
             fontWeight: 700,
             color: "#1a2744",
-            whiteSpace: "nowrap",
             boxShadow: "0 4px 20px rgba(0,0,0,0.18)",
             animation: "bPop 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards",
             position: "relative",
