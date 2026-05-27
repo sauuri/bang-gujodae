@@ -171,27 +171,44 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
         display: "flex",
         alignItems: "flex-end",
       }}>
-        {/* 빗자루 (왼쪽에) */}
-        {(sweeping || arrived) && broomSide === "left" && (
-          <div style={{
-            fontSize: 52,
-            marginRight: -8,
-            marginBottom: 0,
-            transform: "rotate(20deg)",
-            transformOrigin: "80% 90%",
-            animation: sweeping ? "scrubL 0.55s ease-in-out infinite" : "none",
-            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
-            zIndex: 2,
-          }}>🧹</div>
-        )}
-
-        {/* 로봇 스프라이트 애니메이션 */}
+        {/* 로봇 스프라이트 + 빗자루 (손 위치에 absolute) */}
         <div style={{ position: "relative" }}>
           <RobotSprite
             pose={pose}
             size={arrived ? 168 : 138}
             style={{ transition: "width 0.35s ease, height 0.35s ease" }}
           />
+
+          {/* 빗자루 — 왼쪽 방향 (손이 왼쪽 앞에 있음) */}
+          {(sweeping || arrived) && broomSide === "left" && (
+            <div style={{
+              position: "absolute",
+              left: -18,
+              bottom: 28,
+              fontSize: 46,
+              transform: "rotate(30deg)",
+              transformOrigin: "70% 90%",
+              animation: sweeping ? "scrubL 0.55s ease-in-out infinite" : "none",
+              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
+              zIndex: 2,
+            }}>🧹</div>
+          )}
+
+          {/* 빗자루 — 오른쪽 방향 (scaleX -1 된 로봇, 손이 오른쪽 앞) */}
+          {(sweeping || arrived) && broomSide === "right" && (
+            <div style={{
+              position: "absolute",
+              right: -18,
+              bottom: 28,
+              fontSize: 46,
+              transform: "scaleX(-1) rotate(30deg)",
+              transformOrigin: "30% 90%",
+              animation: sweeping ? "scrubR 0.55s ease-in-out infinite" : "none",
+              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
+              zIndex: 2,
+            }}>🧹</div>
+          )}
+
           {/* 도착 후 반짝임 */}
           {arrived && (
             <div style={{
@@ -201,20 +218,6 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
             }}>✨</div>
           )}
         </div>
-
-        {/* 빗자루 (오른쪽에) */}
-        {(sweeping || arrived) && broomSide === "right" && (
-          <div style={{
-            fontSize: 52,
-            marginLeft: -8,
-            marginBottom: 0,
-            transform: "scaleX(-1) rotate(20deg)",
-            transformOrigin: "20% 90%",
-            animation: sweeping ? "scrubR 0.55s ease-in-out infinite" : "none",
-            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
-            zIndex: 2,
-          }}>🧹</div>
-        )}
       </div>
 
       {/* CTA */}
