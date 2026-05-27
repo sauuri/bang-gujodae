@@ -119,11 +119,23 @@ export default function ResultPage() {
     const next = [...checked];
     next[i] = !next[i];
     setChecked(next);
-    const doneCount = next.filter(Boolean).length;
-    if (doneCount === next.length && !endingTriggered) {
+  }
+
+  function handleFinish() {
+    if (!endingTriggered) {
       setEndingTriggered(true);
-      setTimeout(() => setShowEnding(true), 300);
+      setShowEnding(true);
+    } else {
+      router.push("/");
     }
+  }
+
+  async function saveAfterImage() {
+    if (!afterImage) return;
+    const a = document.createElement("a");
+    a.href = afterImage;
+    a.download = `방구조대_청소후_${new Date().toISOString().slice(0, 10)}.jpg`;
+    a.click();
   }
 
   async function handleShare() {
@@ -403,8 +415,17 @@ export default function ResultPage() {
             🔗 공유
           </button>
         </div>
-        <button className="btn-main" onClick={() => router.push("/")}>
-          {allDone ? "🏠 완료! 다음에 또" : "📸 다른 방 분석하기"}
+        {afterImage && (
+          <button onClick={saveAfterImage} style={{
+            width: "100%", marginBottom: 10, padding: "14px", borderRadius: 14,
+            border: "1.5px solid #9FD080", background: "#F2FBEA",
+            color: "#5A9E30", fontSize: 13, fontWeight: 700, cursor: "pointer",
+          }}>
+            📥 청소 후 사진 저장하기
+          </button>
+        )}
+        <button className="btn-main" onClick={allDone ? handleFinish : () => router.push("/")}>
+          {allDone ? "🎉 완료! 엔딩 보기" : "📸 다른 방 분석하기"}
         </button>
 
       </div>

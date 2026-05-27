@@ -111,3 +111,8 @@ main { position: relative; z-index: 1; }
   background: #d4d4d8;
   color: #999;
 }
+
+/* 스프라이트 시트 애니메이션 */
+@keyframes sprite-idle      { to { background-position: var(--sprite-end, 0) 0; } }
+@keyframes sprite-walk      { to { background-position: var(--sprite-end, 0) 0; } }
+@keyframes sprite-celebrate { to { background-position: var(--sprite-end, 0) 0; } }
