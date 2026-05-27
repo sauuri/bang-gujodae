@@ -161,10 +161,12 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
       {/* 로봇 + 빗자루 */}
       <div style={{
         position: "absolute",
-        bottom: "8%",
+        bottom: arrived ? "28%" : "8%",
         left: `${robLeft}%`,
         transform: "translateX(-50%)",
-        transition: transit ? `left ${MOVE_MS}ms cubic-bezier(0.4,0,0.2,1)` : "none",
+        transition: transit
+          ? `left ${MOVE_MS}ms cubic-bezier(0.4,0,0.2,1)`
+          : arrived ? "bottom 0.5s ease" : "none",
         zIndex: 10,
         display: "flex",
         alignItems: "flex-end",
@@ -177,7 +179,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
             marginBottom: 0,
             transform: "rotate(20deg)",
             transformOrigin: "80% 90%",
-            animation: sweeping ? "scrubL 0.38s ease-in-out infinite" : "none",
+            animation: sweeping ? "scrubL 0.55s ease-in-out infinite" : "none",
             filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
             zIndex: 2,
           }}>🧹</div>
@@ -208,7 +210,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
             marginBottom: 0,
             transform: "scaleX(-1) rotate(20deg)",
             transformOrigin: "20% 90%",
-            animation: sweeping ? "scrubR 0.38s ease-in-out infinite" : "none",
+            animation: sweeping ? "scrubR 0.55s ease-in-out infinite" : "none",
             filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
             zIndex: 2,
           }}>🧹</div>
@@ -229,7 +231,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
             fontSize: 27, fontWeight: 900, color: "white",
             marginBottom: 5, letterSpacing: -0.5,
             textShadow: "0 2px 12px rgba(0,0,0,0.45)",
-          }}>🚨 방구조대 🚨</p>
+          }}>방구조대 🚨</p>
           <p style={{
             fontSize: 13, color: "rgba(255,255,255,0.85)",
             marginBottom: 18, textShadow: "0 1px 4px rgba(0,0,0,0.3)",

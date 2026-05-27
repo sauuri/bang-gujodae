@@ -33,7 +33,7 @@ export default function RobotSprite({ pose = "idle", size = 120, style, classNam
 
   const isIdle   = pose === "idle";
   const frames   = isIdle ? IDLE_FRAMES : WALK_FRAMES;
-  const fps      = isIdle ? 2.5 : 9; // idle=느린 숨쉬기, walk=활발한 걷기
+  const fps      = isIdle ? 2.5 : 5; // idle=느린 숨쉬기, walk=빗자루 속도에 맞춤
   const flipped  = pose === "walkRight";
 
   useEffect(() => {

@@ -58,8 +58,7 @@ export default function Home() {
       if (s) setStreak(JSON.parse(s));
       const h = localStorage.getItem("bangHistory");
       if (h) setHistoryCount(JSON.parse(h).length);
-      const seen = localStorage.getItem("bangOnboarded");
-      if (!seen) setShowSplash(true);
+      setShowSplash(true);
     } catch {}
     setInitialized(true);
   }, []);
@@ -168,7 +167,6 @@ export default function Home() {
               background: "rgba(255,255,255,0.22)",
               borderRadius: 50, padding: "5px 14px",
             }}>
-              <span style={{ fontSize: 16, lineHeight: 1 }}>🚨</span>
               <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "white" }}>방구조대</span>
               <span style={{ fontSize: 16, lineHeight: 1 }}>🚨</span>
             </div>
