@@ -1,6 +1,72 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import RobotSprite, { RobotPose } from "./RobotSprite";
+
+// ── Web Audio 효과음 (파일 없이 합성) ──────────────────────────
+function getCtx(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  try { return new (window.AudioContext || (window as any).webkitAudioContext)(); } catch { return null; }
+}
+
+// 말풍선 뽁
+function playSfxPop(ctx: AudioContext) {
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type = "sine";
+  o.frequency.setValueAtTime(320, ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(640, ctx.currentTime + 0.08);
+  g.gain.setValueAtTime(0.18, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+  o.start(); o.stop(ctx.currentTime + 0.18);
+}
+
+// 빗자루 쓱싹 (화이트노이즈)
+function playSfxSweep(ctx: AudioContext) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.22, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const f = ctx.createBiquadFilter();
+  f.type = "bandpass"; f.frequency.value = 1200; f.Q.value = 0.8;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.12, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+  src.connect(f); f.connect(g); g.connect(ctx.destination);
+  src.start(); src.stop(ctx.currentTime + 0.22);
+}
+
+// 반짝 (sparkle)
+function playSfxSparkle(ctx: AudioContext) {
+  [880, 1100, 1320].forEach((freq, i) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = "sine"; o.frequency.value = freq;
+    const t = ctx.currentTime + i * 0.07;
+    g.gain.setValueAtTime(0.0, t);
+    g.gain.linearRampToValueAtTime(0.13, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+    o.start(t); o.stop(t + 0.28);
+  });
+}
+
+// 출동 버튼 (상승 두 음)
+function playSfxStart(ctx: AudioContext) {
+  [520, 780].forEach((freq, i) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = "sine"; o.frequency.value = freq;
+    const t = ctx.currentTime + i * 0.13;
+    g.gain.setValueAtTime(0.0, t);
+    g.gain.linearRampToValueAtTime(0.18, t + 0.04);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+    o.start(t); o.stop(t + 0.32);
+  });
+}
+// ────────────────────────────────────────────────────────────────
 
 const MSGS = [
   "안녕! 방구조봇이에요 🤖",
@@ -29,6 +95,15 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
   const [cleanOp,  setCleanOp]  = useState(0);
   const [showCTA,  setShowCTA]  = useState(false);
   const [arrived,  setArrived]  = useState(false);
+  const ctxRef = useRef<AudioContext | null>(null);
+
+  function sfx(fn: (c: AudioContext) => void) {
+    if (!ctxRef.current) ctxRef.current = getCtx();
+    const c = ctxRef.current;
+    if (!c) return;
+    if (c.state === "suspended") c.resume().then(() => fn(c));
+    else fn(c);
+  }
 
   useEffect(() => {
     const T: ReturnType<typeof setTimeout>[] = [];
@@ -53,6 +128,8 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
         setSweeping(true);
         setMsgIdx(i);
         setMsgOn(true);
+        sfx(playSfxSweep);
+        sfx(playSfxPop);
       }, cur));
 
       cur += MOVE_MS;
@@ -62,6 +139,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
         setTransit(false);
         setSweeping(false);
         setCleanOp(prev => Math.min(1, prev + 0.28));
+        sfx(playSfxSparkle);
       }, cur));
 
       cur += PAUSE_MS;
@@ -120,7 +198,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
       <div style={{
         position: "absolute",
         bottom: "38%",
-        left: `${robLeft}%`,
+        left: `clamp(8%, ${robLeft}%, 80%)`,
         transform: "translateX(-50%)",
         transition: transit ? `left ${MOVE_MS}ms cubic-bezier(0.4,0,0.2,1)` : "none",
         zIndex: 20,
@@ -224,7 +302,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
           }}>
             방 사진 한 장으로 정리 순서 뽑기
           </p>
-          <button onClick={onDone} style={{
+          <button onClick={() => { sfx(playSfxStart); onDone(); }} style={{
             width: "100%",
             padding: "16px",
             borderRadius: 18,
