@@ -2,6 +2,61 @@
 import { useEffect, useRef, useState } from "react";
 import RobotSprite from "./RobotSprite";
 
+function playSfxCelebrate() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // 팡파레 5음 상승
+    [392, 523, 659, 784, 1047].forEach((freq, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = "sine"; o.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.09;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.18, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      o.start(t); o.stop(t + 0.45);
+    });
+  } catch {}
+}
+
+function launchConfetti(canvas: HTMLCanvasElement) {
+  const ctx = canvas.getContext("2d")!;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const COLORS = ["#f97316","#76C442","#FFD54F","#5BB8F5","#ff6b9d","#a78bfa"];
+  const particles = Array.from({ length: 120 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -10 - Math.random() * 80,
+    vx: (Math.random() - 0.5) * 4,
+    vy: 2 + Math.random() * 3,
+    r: 4 + Math.random() * 5,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    angle: Math.random() * Math.PI * 2,
+    spin: (Math.random() - 0.5) * 0.2,
+  }));
+  let frame: number;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.07; p.angle += p.spin;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.6);
+      ctx.restore();
+    });
+    if (particles.some(p => p.y < canvas.height + 20)) {
+      frame = requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  draw();
+  return () => cancelAnimationFrame(frame);
+}
+
 interface Props {
   beforeImage?: string;
   afterImage?: string;
@@ -10,30 +65,36 @@ interface Props {
 
 export default function CleaningEnding({ beforeImage, afterImage, onClose }: Props) {
   const [phase, setPhase] = useState<"sweep" | "jump" | "done">("sweep");
-  const [wipeX, setWipeX] = useState(0);   // 0~100 (%)
-  const [robX, setRobX]   = useState(-15); // vw %
-  const rafRef = useRef<number | null>(null);
-  const startRef = useRef<number | null>(null);
+  const [wipeX, setWipeX] = useState(0);
+  const [robX, setRobX]   = useState(-15);
+  const rafRef      = useRef<number | null>(null);
+  const startRef    = useRef<number | null>(null);
+  const canvasRef   = useRef<HTMLCanvasElement | null>(null);
+  const confettiRef = useRef<(() => void) | null>(null);
 
   const SWEEP_MS = 1800;
 
   useEffect(() => {
-    // 로봇이 왼→오로 쓸면서 before→after 와이프
     const animate = (ts: number) => {
       if (!startRef.current) startRef.current = ts;
       const t = Math.min((ts - startRef.current) / SWEEP_MS, 1);
       const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
       setWipeX(eased * 100);
-      setRobX(-15 + eased * 125); // -15vw → 110vw
+      setRobX(-15 + eased * 125);
       if (t < 1) {
         rafRef.current = requestAnimationFrame(animate);
       } else {
         setPhase("jump");
+        playSfxCelebrate();
+        if (canvasRef.current) confettiRef.current = launchConfetti(canvasRef.current);
         setTimeout(() => setPhase("done"), 2200);
       }
     };
     rafRef.current = requestAnimationFrame(animate);
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (confettiRef.current) confettiRef.current();
+    };
   }, []);
 
   return (
@@ -42,7 +103,14 @@ export default function CleaningEnding({ beforeImage, afterImage, onClose }: Pro
       background: "rgba(0,0,0,0.85)",
       display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",
+
     }} onClick={phase === "done" ? onClose : undefined}>
+
+      {/* 폭죽 캔버스 */}
+      <canvas ref={canvasRef} style={{
+        position: "fixed", inset: 0, zIndex: 201,
+        pointerEvents: "none", width: "100%", height: "100%",
+      }} />
 
       {/* 사진 비교 영역 */}
       <div style={{

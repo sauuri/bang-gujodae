@@ -3,6 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+function playSfxCompare() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // 밝은 3음 팡파레
+    [523, 659, 784].forEach((freq, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = "sine"; o.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.1;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.18, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      o.start(t); o.stop(t + 0.4);
+    });
+  } catch {}
+}
+
 function playSfxCheck(checked: boolean) {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -215,6 +233,7 @@ export default function ResultPage() {
         body: JSON.stringify({ beforeImage: result.imageB64, afterImage }),
       });
       setCompareResult(await res.json());
+      playSfxCompare();
     } catch { alert("비교 중 오류가 발생했어요."); }
     finally { setComparing(false); }
   }
