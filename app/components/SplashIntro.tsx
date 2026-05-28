@@ -78,8 +78,8 @@ const MSGS = [
 const SWEEPS = [
   { dir: "right" as const, startLeft: -20, endLeft: 70 },
   { dir: "left"  as const, startLeft: 115, endLeft: 22 },
-  { dir: "right" as const, startLeft: -20, endLeft: 62 },
-  { dir: "left"  as const, startLeft: 100, endLeft: 40 },
+  { dir: "right" as const, startLeft: -20, endLeft: 82 },
+  { dir: "left"  as const, startLeft: 115, endLeft: 40 },
 ];
 
 const MOVE_MS  = 1050;
@@ -145,13 +145,19 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
       cur += PAUSE_MS;
     });
 
-    // 4번째 sweep 끝나면 바로 arrived
+    // 최종 중앙 도착
     T.push(setTimeout(() => {
+      setPose("walkRight");
+      setTransit(true);
+      setRobLeft(40);
       setMsgOn(false);
       setCleanOp(1);
+    }, cur));
+
+    T.push(setTimeout(() => {
       setTransit(false);
       setArrived(true);
-    }, cur));
+    }, cur + MOVE_MS));
 
     T.push(setTimeout(() => setShowCTA(true), cur + MOVE_MS + 300));
 
