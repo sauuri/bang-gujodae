@@ -138,6 +138,8 @@ export default function ResultPage() {
   const [streak, setStreak] = useState({ current: 0, best: 0 });
   const [showEnding, setShowEnding] = useState(false);
   const [endingTriggered, setEndingTriggered] = useState(false);
+  const [doneFlash, setDoneFlash] = useState(false);
+  const prevAllDoneRef = useRef(false);
   const afterInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -163,6 +165,12 @@ export default function ResultPage() {
     next[i] = !next[i];
     setChecked(next);
     playSfxCheck(next[i]);
+    const nowAllDone = result ? next.filter(Boolean).length === result.steps.length : false;
+    if (nowAllDone && !prevAllDoneRef.current) {
+      setDoneFlash(true);
+      setTimeout(() => setDoneFlash(false), 2200);
+    }
+    prevAllDoneRef.current = nowAllDone;
   }
 
   function handleFinish() {
@@ -238,6 +246,17 @@ export default function ResultPage() {
     finally { setComparing(false); }
   }
 
+  async function shareCompareResult() {
+    if (!compareResult) return;
+    const text = `방구조대가 청소 전후를 비교했어요!\n\n변화 점수: ${compareResult.score}/10\n${compareResult.changes.map(c => `✓ ${c}`).join("\n")}\n\n${compareResult.praise}\n\nhttps://bang-gujodae.vercel.app`;
+    if (navigator.share) {
+      try { await navigator.share({ title: "방 청소 전후 비교", text }); } catch {}
+    } else {
+      await navigator.clipboard.writeText(text);
+      alert("결과가 복사됐어요!");
+    }
+  }
+
   return (
     <>
     {showEnding && (
@@ -247,7 +266,32 @@ export default function ResultPage() {
         onClose={() => setShowEnding(false)}
       />
     )}
-    <main style={{ maxWidth: 460, margin: "0 auto", padding: "0 0 80px", background: "#F2FBEA", minHeight: "100vh" }}>
+
+
+    {/* 완료 파티클 */}
+    {doneFlash && (
+      <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", overflow: "hidden" }}>
+        {["🎉","✨","⭐","🎊","✨","🌟","🎉","✨","⭐","🎊","🌟","✨"].map((e, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            top: -40,
+            left: `${5 + i * 8}%`,
+            fontSize: 20 + (i % 3) * 8,
+            animation: `confettiFall ${1.4 + (i % 4) * 0.2}s ease-in ${i * 0.07}s forwards`,
+            opacity: 0,
+          }}>{e}</div>
+        ))}
+        <style>{`
+          @keyframes confettiFall {
+            0%   { transform: translateY(0)    rotate(0deg);   opacity: 1; }
+            80%  { opacity: 1; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+          }
+        `}</style>
+      </div>
+    )}
+
+    <main style={{ maxWidth: 460, margin: "0 auto", padding: "0 0 max(80px, calc(64px + env(safe-area-inset-bottom, 0px)))", background: "#F2FBEA", minHeight: "100vh" }}>
 
       {/* 상단 헤더 */}
       <div style={{
@@ -374,13 +418,13 @@ export default function ResultPage() {
                 <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#aaa", marginBottom: 6, textAlign: "center" }}>BEFORE</div>
-                    <img src={result.imageB64} alt="before" style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: 130 }} />
+                    <img src={result.imageB64} alt="before" style={{ width: "100%", borderRadius: 10, display: "block" }} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "#aaa", marginBottom: 6, textAlign: "center" }}>AFTER</div>
                     {afterImage ? (
                       <div style={{ position: "relative" }}>
-                        <img src={afterImage} alt="after" style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: 130 }} />
+                        <img src={afterImage} alt="after" style={{ width: "100%", borderRadius: 10, display: "block" }} />
                         <button onClick={() => { setAfterImage(null); setCompareResult(null); }}
                           style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.5)", color: "white", border: "none", borderRadius: "50%", width: 22, height: 22, cursor: "pointer", fontSize: 10 }}>✕</button>
                       </div>
@@ -432,6 +476,13 @@ export default function ResultPage() {
                   <div style={{ background: "#DBEFC7", border: "1.5px solid #9FD080", borderRadius: 12, padding: "14px 16px", fontSize: 13, color: "#1a2744", lineHeight: 1.8 }}>
                     🎉 {compareResult.praise}
                   </div>
+                  <button onClick={shareCompareResult} style={{
+                    width: "100%", padding: "12px", borderRadius: 12,
+                    border: "1.5px solid #9FD080", background: "#F2FBEA",
+                    color: "#5A9E30", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  }}>
+                    📤 비교 결과 공유하기
+                  </button>
                 </div>
               )}
             </div>

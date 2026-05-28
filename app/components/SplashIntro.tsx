@@ -164,6 +164,8 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
     return () => T.forEach(clearTimeout);
   }, []);
 
+
+
   const broomSide = pose === "walkRight" ? "right" : "left";
 
   return (
@@ -250,33 +252,31 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
       }}>
         {/* 로봇 스프라이트 + 빗자루 (손 위치에 absolute) */}
         <div style={{ position: "relative" }}>
-          <RobotSprite
-            pose={pose}
-            size={arrived ? 168 : 138}
-            style={{ transition: "width 0.35s ease, height 0.35s ease" }}
-          />
-
-          {/* 빗자루 — 로봇 움직이는 동안 + 도착 후 계속 쓱싹 */}
-          {(sweeping || arrived) && (
-            <div style={{
-              position: "absolute",
-              ...(broomSide === "right"
-                ? { right: -18, transformOrigin: "30% 90%", animation: "scrubR 0.8s ease-in-out infinite" }
-                : { left: -18,  transformOrigin: "70% 90%", animation: "scrubL 0.8s ease-in-out infinite" }),
-              bottom: 8,
-              fontSize: 46,
-              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
-              zIndex: 2,
-            }}>🧹</div>
-          )}
-
-          {/* 도착 후 반짝임 */}
-          {arrived && (
-            <div style={{
-              position: "absolute", top: -18, left: "50%", transform: "translateX(-50%)",
-              fontSize: 20,
-              animation: "sparkle 1.1s ease-in-out infinite",
-            }}>✨</div>
+          {arrived ? (
+            /* 도착 후: idle 스프라이트 + 살짝 float */
+            <div style={{ animation: "idleFloat 2.6s ease-in-out infinite" }}>
+              <RobotSprite pose="idle" size={168} />
+            </div>
+          ) : (
+            <>
+              <RobotSprite
+                pose={pose}
+                size={138}
+              />
+              {/* 빗자루 — 로봇 이동 중에만 */}
+              {sweeping && (
+                <div style={{
+                  position: "absolute",
+                  ...(broomSide === "right"
+                    ? { right: -18, transformOrigin: "30% 90%", animation: "scrubR 0.8s ease-in-out infinite" }
+                    : { left: -18,  transformOrigin: "70% 90%", animation: "scrubL 0.8s ease-in-out infinite" }),
+                  bottom: 8,
+                  fontSize: 46,
+                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))",
+                  zIndex: 2,
+                }}>🧹</div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -284,7 +284,9 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
       {/* CTA */}
       {showCTA && (
         <div style={{
-          position: "absolute", bottom: "5%", left: "50%",
+          position: "absolute",
+          bottom: "max(5%, calc(16px + env(safe-area-inset-bottom, 0px)))",
+          left: "50%",
           width: "min(320px, 86vw)",
           transform: "translateX(-50%)",
           textAlign: "center",
@@ -342,6 +344,10 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
         @keyframes sparkle {
           0%, 100% { transform: translateX(-50%) scale(1);    opacity: 1;   }
           50%       { transform: translateX(-50%) scale(1.35); opacity: 0.65; }
+        }
+        @keyframes idleFloat {
+          0%, 100% { transform: translateY(0px); }
+          50%      { transform: translateY(-6px); }
         }
       `}</style>
     </div>

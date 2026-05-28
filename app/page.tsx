@@ -117,14 +117,20 @@ export default function Home() {
       {loading && (
         <div style={{
           position: "fixed", inset: 0,
-          background: "rgba(238,246,255,0.96)",
+          background: "rgba(242,251,234,0.97)",
           backdropFilter: "blur(14px)",
           zIndex: 99,
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20,
         }}>
-          <RobotSprite pose={sweepDir} size={110} />
+          {/* 스캔 레이더 */}
+          <div style={{ position: "relative", width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid #B5DFA0", animation: "scanRing 2s ease-out infinite", opacity: 0 }} />
+            <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid #76C442", animation: "scanRing 2s ease-out 0.7s infinite", opacity: 0 }} />
+            <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid #5A9E30", animation: "scanRing 2s ease-out 1.4s infinite", opacity: 0 }} />
+            <RobotSprite pose={sweepDir} size={110} />
+          </div>
           <div style={{ fontSize: 18, fontWeight: 900, color: "#1a2744" }}>방 구조 중</div>
-          <div style={{ fontSize: 13, color: "#8DC870", transition: "all 0.4s" }}>{loadingMsg}</div>
+          <div style={{ fontSize: 13, color: "#5A9E30", fontWeight: 700, transition: "all 0.4s" }}>{loadingMsg}</div>
           <div style={{ width: 160, height: 5, background: "#DBEFC7", borderRadius: 4, overflow: "hidden" }}>
             <div style={{
               height: "100%",
@@ -134,9 +140,9 @@ export default function Home() {
             }} />
           </div>
           <style>{`
-            @keyframes robotBounce {
-              0%, 100% { transform: translateY(0); }
-              50% { transform: translateY(-12px); }
+            @keyframes scanRing {
+              0%   { transform: scale(0.6); opacity: 0.8; }
+              100% { transform: scale(1.6); opacity: 0; }
             }
             @keyframes progress { 0%{width:0%} 80%{width:90%} 100%{width:90%} }
           `}</style>
@@ -146,7 +152,7 @@ export default function Home() {
       <main style={{
         maxWidth: 440,
         margin: "0 auto",
-        padding: "0 0 80px",
+        padding: "0 0 max(80px, calc(64px + env(safe-area-inset-bottom, 0px)))",
         visibility: (!initialized || showSplash) ? "hidden" : "visible",
       }}>
 
