@@ -2,6 +2,31 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+
+function playSfxCheck(checked: boolean) {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = "sine";
+    if (checked) {
+      // 체크 ON: 경쾌한 상승음
+      o.frequency.setValueAtTime(440, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.12);
+      g.gain.setValueAtTime(0.15, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      o.start(); o.stop(ctx.currentTime + 0.2);
+    } else {
+      // 체크 OFF: 낮아지는 음
+      o.frequency.setValueAtTime(440, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.1);
+      g.gain.setValueAtTime(0.1, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      o.start(); o.stop(ctx.currentTime + 0.15);
+    }
+  } catch {}
+}
 import RobotSprite from "../components/RobotSprite";
 import CleaningEnding from "../components/CleaningEnding";
 
@@ -119,6 +144,7 @@ export default function ResultPage() {
     const next = [...checked];
     next[i] = !next[i];
     setChecked(next);
+    playSfxCheck(next[i]);
   }
 
   function handleFinish() {
