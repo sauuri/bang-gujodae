@@ -76,7 +76,7 @@ const MSGS = [
 ];
 
 const SWEEPS = [
-  { dir: "right" as const, startLeft: -20, endLeft: 78 },
+  { dir: "right" as const, startLeft: -20, endLeft: 70 },
   { dir: "left"  as const, startLeft: 115, endLeft: 22 },
   { dir: "right" as const, startLeft: -20, endLeft: 82 },
   { dir: "left"  as const, startLeft: 115, endLeft: 40 },
