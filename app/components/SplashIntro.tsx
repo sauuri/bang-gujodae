@@ -199,7 +199,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
       {/* 말풍선 */}
       <div style={{
         position: "absolute",
-        bottom: "38%",
+        bottom: "46%",
         left: `clamp(8%, ${robLeft}%, 80%)`,
         transform: "translateX(-50%)",
         transition: transit ? `left ${MOVE_MS}ms cubic-bezier(0.4,0,0.2,1)` : "none",
@@ -240,28 +240,33 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
       {/* 로봇 + 빗자루 */}
       <div style={{
         position: "absolute",
-        bottom: arrived ? "28%" : "8%",
+        bottom: arrived ? "24%" : "16%",
         left: `${robLeft}%`,
         transform: "translateX(-50%)",
         transition: transit
           ? `left ${MOVE_MS}ms cubic-bezier(0.4,0,0.2,1)`
-          : arrived ? "bottom 0.5s ease" : "none",
+          : arrived ? "bottom 0.6s ease" : "none",
         zIndex: 10,
         display: "flex",
         alignItems: "flex-end",
       }}>
         {/* 로봇 스프라이트 + 빗자루 (손 위치에 absolute) */}
-        <div style={{ position: "relative" }}>
+        <div style={{
+          position: "relative",
+          transform: `scale(${arrived ? 1.0 + 3 * 0.13 : msgIdx >= 0 ? 1.0 + msgIdx * 0.13 : 1.0})`,
+          transformOrigin: "center bottom",
+          transition: "transform 0.5s ease",
+        }}>
           {arrived ? (
             /* 도착 후: idle 스프라이트 + 살짝 float */
-            <div style={{ animation: "idleFloat 2.6s ease-in-out infinite" }}>
-              <RobotSprite pose="idle" size={168} />
+            <div style={{ animation: "idleFloat 3s ease-in-out infinite" }}>
+              <RobotSprite pose="idle" size={162} />
             </div>
           ) : (
             <>
               <RobotSprite
                 pose={pose}
-                size={138}
+                size={162}
               />
               {/* 빗자루 — 로봇 이동 중에만 */}
               {sweeping && (
@@ -285,7 +290,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
       {showCTA && (
         <div style={{
           position: "absolute",
-          bottom: "max(5%, calc(16px + env(safe-area-inset-bottom, 0px)))",
+          bottom: "max(10%, calc(20px + env(safe-area-inset-bottom, 0px)))",
           left: "50%",
           width: "min(320px, 86vw)",
           transform: "translateX(-50%)",
@@ -347,7 +352,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
         }
         @keyframes idleFloat {
           0%, 100% { transform: translateY(0px); }
-          50%      { transform: translateY(-6px); }
+          50%      { transform: translateY(-3px); }
         }
       `}</style>
     </div>

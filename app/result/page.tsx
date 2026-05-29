@@ -489,6 +489,10 @@ export default function ResultPage() {
           </div>
         )}
 
+        <button className="btn-main" onClick={allDone ? handleFinish : () => router.push("/")} style={{ marginBottom: 10 }}>
+          {allDone ? "🎉 완료! 엔딩 보기" : "📸 다른 방 분석하기"}
+        </button>
+
         {/* 기록 저장 버튼 */}
         {anyDone && !saved && (
           <button className="btn-main" onClick={handleSave} style={{ marginBottom: 10 }}>
@@ -520,9 +524,6 @@ export default function ResultPage() {
             📥 청소 후 사진 저장하기
           </button>
         )}
-        <button className="btn-main" onClick={allDone ? handleFinish : () => router.push("/")}>
-          {allDone ? "🎉 완료! 엔딩 보기" : "📸 다른 방 분석하기"}
-        </button>
 
       </div>
     </main>

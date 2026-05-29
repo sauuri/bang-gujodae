@@ -73,6 +73,7 @@ export default function HistoryPage() {
   const router = useRouter();
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [streak, setStreak]   = useState({ current: 0, best: 0 });
+  const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
 
   useEffect(() => {
     try {
@@ -82,6 +83,14 @@ export default function HistoryPage() {
       if (s) setStreak(JSON.parse(s));
     } catch {}
   }, []);
+
+  function confirmDelete() {
+    if (deleteIdx === null) return;
+    const updated = history.filter((_, i) => i !== deleteIdx);
+    setHistory(updated);
+    localStorage.setItem("bangHistory", JSON.stringify(updated));
+    setDeleteIdx(null);
+  }
 
   const avgScore  = history.length > 0
     ? Math.round(history.reduce((a, b) => a + (b.messScore ?? 0), 0) / history.length)
@@ -161,10 +170,17 @@ export default function HistoryPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {history.map((entry, i) => (
               <div key={i} className="card" style={{ padding: "16px 20px" }}>
-                {/* 날짜 + 점수 */}
+                {/* 날짜 + 점수 + 삭제 */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>{formatDate(entry.date)}</div>
-                  <ScoreBadge score={entry.messScore ?? 0} prev={history[i + 1]?.messScore} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <ScoreBadge score={entry.messScore ?? 0} prev={history[i + 1]?.messScore} />
+                    <button onClick={() => setDeleteIdx(i)} style={{
+                      background: "none", border: "1.5px solid #fca5a5", borderRadius: 8,
+                      color: "#ef4444", fontSize: 14, padding: "5px 8px",
+                      cursor: "pointer", lineHeight: 1,
+                    }}>🗑️</button>
+                  </div>
                 </div>
 
                 {/* Before/After 이미지 */}
@@ -198,6 +214,44 @@ export default function HistoryPage() {
         )}
 
       </div>
+
+      {/* 삭제 확인 모달 */}
+      {deleteIdx !== null && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 999,
+          background: "rgba(0,0,0,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "0 32px",
+        }} onClick={() => setDeleteIdx(null)}>
+          <div style={{
+            background: "#fff", borderRadius: 24, padding: "28px 24px",
+            width: "100%", maxWidth: 320, textAlign: "center",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>🗑️</div>
+            <div style={{ fontSize: 17, fontWeight: 900, color: "#1a2a14", marginBottom: 6 }}>
+              이 기록 삭제할까요?
+            </div>
+            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 24 }}>
+              {history[deleteIdx] ? formatDate(history[deleteIdx].date) : ""}<br/>
+              삭제하면 복구할 수 없어요
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setDeleteIdx(null)} style={{
+                flex: 1, padding: "14px", borderRadius: 14,
+                border: "1.5px solid #e5e7eb", background: "#f9fafb",
+                color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer",
+              }}>취소</button>
+              <button onClick={confirmDelete} style={{
+                flex: 1, padding: "14px", borderRadius: 14,
+                border: "none", background: "#ef4444",
+                color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
+              }}>삭제</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }
