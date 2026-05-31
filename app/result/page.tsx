@@ -48,7 +48,36 @@ function playSfxCheck(checked: boolean) {
 }
 import RobotSprite from "../components/RobotSprite";
 import CleaningEnding from "../components/CleaningEnding";
+import { bridgeSetTimer, bridgeClearTimer } from "../utils/timerBridge";
 
+function parseDurationSecs(dur: string): number {
+  const h = dur.match(/(\d+)\s*시간/);
+  const m = dur.match(/(\d+)\s*분/);
+  return (h ? parseInt(h[1]) * 3600 : 0) + (m ? parseInt(m[1]) * 60 : 0) || 300;
+}
+
+function fmt(s: number) {
+  const m = Math.floor(s / 60).toString().padStart(2, "0");
+  const sec = (s % 60).toString().padStart(2, "0");
+  return `${m}:${sec}`;
+}
+
+function playTimerDone() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    [523, 659, 784, 1047].forEach((f, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.connect(g); g.connect(ctx.destination);
+      const t = ctx.currentTime + i * 0.15;
+      o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.22, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+      o.start(t); o.stop(t + 0.55);
+    });
+  } catch {}
+}
+
+interface TimerState { idx: number; total: number; remaining: number; done: boolean; startedAt: number; startedRemaining: number }
 interface Step { order: number; title: string; duration: string; reason: string; }
 interface CompareResult { changes: string[]; praise: string; score: number; }
 interface RescueResult {
@@ -140,8 +169,51 @@ export default function ResultPage() {
   const [showEnding, setShowEnding] = useState(false);
   const [endingTriggered, setEndingTriggered] = useState(false);
   const [doneFlash, setDoneFlash] = useState(false);
+  const [timer, setTimer] = useState<TimerState | null>(null);
   const prevAllDoneRef = useRef(false);
   const afterInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!timer || timer.done) return;
+    if (timer.remaining <= 0) { setTimer(t => t ? { ...t, done: true } : null); return; }
+
+    function handleVisibility() {
+      if (document.visibilityState === "visible") {
+        setTimer(t => {
+          if (!t || t.done) return t;
+          const remaining = Math.max(0, Math.floor((t.startedAt + t.startedRemaining * 1000 - Date.now()) / 1000));
+          if (remaining <= 0) { playTimerDone(); hapticSuccess(); }
+          return remaining <= 0 ? { ...t, remaining: 0, done: true } : { ...t, remaining };
+        });
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    const id = setInterval(() => {
+      setTimer(t => {
+        if (!t || t.done) { clearInterval(id); return t; }
+        const remaining = Math.max(0, Math.floor((t.startedAt + t.startedRemaining * 1000 - Date.now()) / 1000));
+        if (remaining <= 0) { clearInterval(id); playTimerDone(); hapticSuccess(); return { ...t, remaining: 0, done: true }; }
+        return { ...t, remaining };
+      });
+    }, 500);
+
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", handleVisibility); };
+  }, [timer?.idx, timer?.done]);
+
+  function startTimer(i: number, step: Step) {
+    const secs = parseDurationSecs(step.duration);
+    bridgeSetTimer(secs, step.title);
+    hapticMedium();
+    setTimer({ idx: i, total: secs, remaining: secs, done: false, startedAt: Date.now(), startedRemaining: secs });
+  }
+
+  function completeTimer() {
+    if (!timer) return;
+    const next = [...checked]; next[timer.idx] = true; setChecked(next);
+    bridgeClearTimer();
+    setTimer(null);
+  }
 
   useEffect(() => {
     const raw = localStorage.getItem("rescueResult");
@@ -266,6 +338,98 @@ export default function ResultPage() {
 
   return (
     <>
+    {/* 타이머 오버레이 */}
+    {timer && result && (
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 100,
+        background: "linear-gradient(180deg, #0a1a05 0%, #0d2208 50%, #102a0a 100%)",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        padding: "40px 24px",
+      }}>
+        <div style={{ position: "absolute", top: "8%", left: "50%", transform: "translateX(-50%)", fontSize: 28, opacity: 0.9 }}>
+          {timer.done ? "🎉" : "🧹"}
+        </div>
+
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 2, marginBottom: 8 }}>
+            {timer.done ? "완료!" : "청소 중"}
+          </div>
+          <div style={{ fontSize: 18, color: "white", fontWeight: 900, lineHeight: 1.4 }}>
+            {result.steps[timer.idx].title}
+          </div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 6 }}>
+            {result.steps[timer.idx].reason}
+          </div>
+        </div>
+
+        <div style={{ position: "relative", width: 200, height: 200, marginBottom: 36 }}>
+          <svg width="200" height="200" style={{ transform: "rotate(-90deg)" }}>
+            <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10" />
+            <circle cx="100" cy="100" r="88" fill="none"
+              stroke={timer.done ? "#76C442" : "#5A9E30"}
+              strokeWidth="10" strokeLinecap="round"
+              strokeDasharray={`${2 * Math.PI * 88}`}
+              strokeDashoffset={`${2 * Math.PI * 88 * (timer.remaining / timer.total)}`}
+              style={{ transition: "stroke-dashoffset 0.9s linear, stroke 0.3s" }}
+            />
+          </svg>
+          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            {timer.done ? (
+              <div style={{ fontSize: 44 }}>✅</div>
+            ) : (
+              <>
+                <div style={{ fontSize: 46, fontWeight: 900, color: "white", letterSpacing: -1, fontVariantNumeric: "tabular-nums" }}>
+                  {fmt(timer.remaining)}
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>남음</div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {timer.done ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 300 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#76C442", textAlign: "center", marginBottom: 4 }}>
+              시간 다 됐어요! 깨끗해졌나요?
+            </div>
+            <button onClick={completeTimer} style={{
+              padding: "14px", borderRadius: 14, border: "none", cursor: "pointer",
+              background: "linear-gradient(135deg, #76C442, #5A9E30)",
+              color: "white", fontSize: 15, fontWeight: 900,
+              boxShadow: "0 6px 20px rgba(118,196,66,0.4)",
+            }}>
+              ✅ 완료했어요!
+            </button>
+            <button onClick={() => { bridgeClearTimer(); setTimer(null); }} style={{
+              padding: "14px", borderRadius: 14, cursor: "pointer",
+              background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)",
+              color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: 700,
+            }}>
+              😅 못 했지만 괜찮아요
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 300 }}>
+            <button onClick={completeTimer} style={{
+              padding: "14px", borderRadius: 14, border: "none", cursor: "pointer",
+              background: "linear-gradient(135deg, #76C442, #5A9E30)",
+              color: "white", fontSize: 15, fontWeight: 900,
+              boxShadow: "0 6px 20px rgba(118,196,66,0.4)",
+            }}>
+              ✅ 벌써 다 했어요!
+            </button>
+            <button onClick={() => { bridgeClearTimer(); setTimer(null); }} style={{
+              padding: "14px", borderRadius: 14, cursor: "pointer",
+              background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)",
+              color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 700,
+            }}>
+              ✕ 나중에 할게요
+            </button>
+          </div>
+        )}
+      </div>
+    )}
+
     {showEnding && (
       <CleaningEnding
         beforeImage={result?.imageB64}
@@ -378,9 +542,22 @@ export default function ResultPage() {
                       {step.title}
                     </span>
                   </div>
-                  <span style={{ fontSize: 11, color: "#5A9E30", background: "#DBEFC7", padding: "2px 8px", borderRadius: 20, flexShrink: 0, marginLeft: 8, fontWeight: 700 }}>
-                    {step.duration}
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                    <span style={{ fontSize: 11, color: "#5A9E30", background: "#DBEFC7", padding: "2px 8px", borderRadius: 20, fontWeight: 700 }}>
+                      {step.duration}
+                    </span>
+                    {parseDurationSecs(step.duration) > 0 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); startTimer(i, step); }}
+                        style={{
+                          background: "#76C442", color: "white", border: "none",
+                          borderRadius: 14, padding: "3px 8px", fontSize: 11,
+                          fontWeight: 800, cursor: "pointer",
+                        }}>
+                        ⏱
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 5, marginLeft: 36 }}>{step.reason}</div>
               </div>
