@@ -172,6 +172,20 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 200, overflow: "hidden" }}>
 
+      {/* 스킵 버튼 */}
+      <button
+        onClick={() => { hapticMedium(); onDone(); }}
+        style={{
+          position: "absolute", top: "max(16px, env(safe-area-inset-top, 16px))", right: 16,
+          zIndex: 10, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)",
+          border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.85)",
+          fontSize: 12, fontWeight: 700, padding: "6px 14px", borderRadius: 20,
+          cursor: "pointer", letterSpacing: 0.5,
+        }}
+      >
+        SKIP ›
+      </button>
+
       {/* 지저분한 방 배경 */}
       <img src="/room-messy.jpg" alt="" style={{
         position: "absolute", inset: 0, width: "100%", height: "100%",
