@@ -265,7 +265,7 @@ export default function ResultPage() {
     if (!afterImage) return;
     const a = document.createElement("a");
     a.href = afterImage;
-    a.download = `방구조대_청소후_${new Date().toISOString().slice(0, 10)}.jpg`;
+    a.download = `${tr.afterPhotoName}_${new Date().toISOString().slice(0, 10)}.jpg`;
     a.click();
   }
 
@@ -275,11 +275,11 @@ export default function ResultPage() {
     const text = tr.shareText(messScore, scoreLabel, result?.summary ?? "", result?.steps.length ?? 0);
     if (navigator.share) {
       try {
-        await navigator.share({ title: "방구조대 분석 결과", text, url: "https://bang-gujodae.vercel.app" });
+        await navigator.share({ title: tr.shareResultTitle, text, url: "https://bang-gujodae.vercel.app" });
       } catch {}
     } else {
       await navigator.clipboard.writeText(text + "\nhttps://bang-gujodae.vercel.app");
-      alert("링크가 복사됐어요!");
+      alert(tr.copiedLink);
     }
   }
 
@@ -324,18 +324,18 @@ export default function ResultPage() {
       });
       setCompareResult(await res.json());
       playSfxCompare();
-    } catch { alert("비교 중 오류가 발생했어요."); }
+    } catch { alert(tr.compareError); }
     finally { setComparing(false); }
   }
 
   async function shareCompareResult() {
     if (!compareResult) return;
-    const text = `방구조대가 청소 전후를 비교했어요!\n\n변화 점수: ${compareResult.score}/10\n${compareResult.changes.map(c => `✓ ${c}`).join("\n")}\n\n${compareResult.praise}\n\nhttps://bang-gujodae.vercel.app`;
+    const text = tr.shareCompareText(compareResult.score, compareResult.changes, compareResult.praise);
     if (navigator.share) {
-      try { await navigator.share({ title: "방 청소 전후 비교", text }); } catch {}
+      try { await navigator.share({ title: tr.shareCompareTitle, text }); } catch {}
     } else {
       await navigator.clipboard.writeText(text);
-      alert("결과가 복사됐어요!");
+      alert(tr.copiedResult);
     }
   }
 
@@ -384,7 +384,7 @@ export default function ResultPage() {
                 <div style={{ fontSize: 46, fontWeight: 900, color: "white", letterSpacing: -1, fontVariantNumeric: "tabular-nums" }}>
                   {fmt(timer.remaining)}
                 </div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>남음</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{tr.remaining}</div>
               </>
             )}
           </div>
@@ -393,7 +393,7 @@ export default function ResultPage() {
         {timer.done ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 300 }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: "#76C442", textAlign: "center", marginBottom: 4 }}>
-              시간 다 됐어요! 깨끗해졌나요?
+              {tr.timerDone}
             </div>
             <button onClick={completeTimer} style={{
               padding: "14px", borderRadius: 14, border: "none", cursor: "pointer",
@@ -401,14 +401,14 @@ export default function ResultPage() {
               color: "white", fontSize: 15, fontWeight: 900,
               boxShadow: "0 6px 20px rgba(118,196,66,0.4)",
             }}>
-              ✅ 완료했어요!
+              {tr.timerDoneBtn}
             </button>
             <button onClick={() => { bridgeClearTimer(); setTimer(null); }} style={{
               padding: "14px", borderRadius: 14, cursor: "pointer",
               background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)",
               color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: 700,
             }}>
-              😅 못 했지만 괜찮아요
+              {tr.timerSkip}
             </button>
           </div>
         ) : (
@@ -419,14 +419,14 @@ export default function ResultPage() {
               color: "white", fontSize: 15, fontWeight: 900,
               boxShadow: "0 6px 20px rgba(118,196,66,0.4)",
             }}>
-              ✅ 벌써 다 했어요!
+              {tr.timerEarlyDone}
             </button>
             <button onClick={() => { bridgeClearTimer(); setTimer(null); }} style={{
               padding: "14px", borderRadius: 14, cursor: "pointer",
               background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)",
               color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 700,
             }}>
-              ✕ 나중에 할게요
+              {tr.timerCancel}
             </button>
           </div>
         )}
@@ -485,7 +485,7 @@ export default function ResultPage() {
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {streak.current > 0 && (
               <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: 50, padding: "4px 12px", fontSize: 12, fontWeight: 800, color: "white" }}>
-                🔥 {streak.current}일
+                🔥 {streak.current}{tr.streakDays}
               </div>
             )}
             <div style={{ display: "flex", gap: 8 }}>
@@ -520,9 +520,9 @@ export default function ResultPage() {
         <div className="card" style={{ marginBottom: 12 }}>
           <div style={{ padding: "16px 20px 0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 800, color: "#1a2744" }}>🧹 지금 할 순서</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: "#1a2744" }}>{tr.stepsTitle}</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? "#5A9E30" : "#aaa" }}>
-                {allDone ? "완료 🎉" : `${checkedCount}/${result.steps.length}`}
+                {allDone ? tr.allDone : `${checkedCount}/${result.steps.length}`}
               </span>
             </div>
             {anyDone && (
@@ -607,8 +607,8 @@ export default function ResultPage() {
         {anyDone && (
           <div className="card" style={{ marginBottom: 12 }}>
             <div style={{ padding: "16px 20px 0" }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#1a2744", marginBottom: 4 }}>📸 Before / After</div>
-              <div style={{ fontSize: 12, color: "#aaa", marginBottom: 14 }}>같은 방향에서 찍으면 AI가 변화를 비교해줘요</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#1a2744", marginBottom: 4 }}>{tr.beforeAfterTitle}</div>
+              <div style={{ fontSize: 12, color: "#aaa", marginBottom: 14 }}>{tr.beforeAfterHint}</div>
             </div>
             <div style={{ padding: "0 20px 20px" }}>
               {result.imageB64 && (
@@ -632,7 +632,7 @@ export default function ResultPage() {
                         cursor: "pointer", background: "#F2FBEA",
                       }}>
                         <div style={{ fontSize: 24 }}>📷</div>
-                        <div style={{ fontSize: 10, color: "#76C442", marginTop: 4, fontWeight: 700 }}>탭해서 업로드</div>
+                        <div style={{ fontSize: 10, color: "#76C442", marginTop: 4, fontWeight: 700 }}>{tr.tapToUpload}</div>
                       </div>
                     )}
                   </div>
@@ -644,20 +644,20 @@ export default function ResultPage() {
 
               {afterImage && !compareResult && (
                 <button className="btn-main" onClick={compare} disabled={comparing}>
-                  {comparing ? "🔍 비교 중..." : "✨ 얼마나 달라졌는지 봐줘"}
+                  {comparing ? tr.comparing : tr.compareBtn}
                 </button>
               )}
               {!afterImage && (
                 <button onClick={() => afterInputRef.current?.click()}
                   style={{ width: "100%", padding: "12px", borderRadius: 12, border: "1.5px dashed #9FD080", background: "#F2FBEA", color: "#76C442", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                  📸 정리 후 사진 올리기
+                  {tr.uploadAfter}
                 </button>
               )}
 
               {compareResult && (
                 <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
                   <div style={{ textAlign: "center", padding: "8px 0" }}>
-                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>변화 점수</div>
+                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>{tr.compareCardScore}</div>
                     <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 4 }}>
                       {Array.from({ length: 10 }).map((_, i) => (
                         <div key={i} style={{ width: 18, height: 18, borderRadius: "50%", background: i < compareResult.score ? "#76C442" : "#e5e7eb" }} />
@@ -678,7 +678,7 @@ export default function ResultPage() {
                     border: "1.5px solid #9FD080", background: "#F2FBEA",
                     color: "#5A9E30", fontSize: 13, fontWeight: 700, cursor: "pointer",
                   }}>
-                    📤 비교 결과 공유하기
+                    {tr.shareCompare}
                   </button>
                 </div>
               )}
