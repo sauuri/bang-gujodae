@@ -172,6 +172,7 @@ export default function Home() {
             position: "absolute", top: -30, right: -30,
             width: 130, height: 130, borderRadius: "50%",
             background: "rgba(255,255,255,0.08)",
+            pointerEvents: "none",
           }} />
 
           {/* 상단 바 */}
