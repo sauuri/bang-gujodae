@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SplashIntro from "./components/SplashIntro";
 import RobotSprite from "./components/RobotSprite";
+import { hapticLight, hapticMedium } from "./utils/haptics";
 
 async function resizeImage(file: File): Promise<string> {
   return new Promise((resolve) => {
@@ -86,6 +87,7 @@ export default function Home() {
 
   async function handleSubmit() {
     if (!imageB64) return;
+    hapticMedium();
     setLoading(true);
     setLoadingMsg(LOADING_MSGS[0]);
     try {
@@ -302,7 +304,7 @@ export default function Home() {
             </div>
 
             <input type="range" min={1} max={10} value={energy}
-              onChange={(e) => setEnergy(Number(e.target.value))}
+              onChange={(e) => { const v = Number(e.target.value); if (v !== energy) hapticLight(); setEnergy(v); }}
               className="slider" />
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
               <span style={{ fontSize: 10, color: "#ccc" }}>방전 😵</span>
@@ -320,7 +322,7 @@ export default function Home() {
                 <button
                   key={t}
                   className={`time-btn${timeLeft === t ? " active" : ""}`}
-                  onClick={() => setTimeLeft(t)}
+                  onClick={() => { hapticLight(); setTimeLeft(t); }}
                 >
                   {t}
                 </button>

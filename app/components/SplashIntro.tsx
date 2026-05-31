@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import RobotSprite, { RobotPose } from "./RobotSprite";
+import { hapticMedium } from "../utils/haptics";
 
 // ── Web Audio 효과음 (파일 없이 합성) ──────────────────────────
 function getCtx(): AudioContext | null {
@@ -309,7 +310,7 @@ export default function SplashIntro({ onDone }: { onDone: () => void }) {
           }}>
             방 사진 한 장으로 정리 순서 뽑기
           </p>
-          <button onClick={() => { sfx(playSfxStart); onDone(); }} style={{
+          <button onClick={() => { sfx(playSfxStart); hapticMedium(); onDone(); }} style={{
             width: "100%",
             padding: "16px",
             borderRadius: 18,

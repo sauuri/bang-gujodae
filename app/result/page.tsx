@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { hapticLight, hapticMedium, hapticHeavy, hapticSuccess } from "../utils/haptics";
 
 function playSfxCompare() {
   try {
@@ -165,9 +166,11 @@ export default function ResultPage() {
     next[i] = !next[i];
     setChecked(next);
     playSfxCheck(next[i]);
+    next[i] ? hapticMedium() : hapticLight();
     const nowAllDone = result ? next.filter(Boolean).length === result.steps.length : false;
     if (nowAllDone && !prevAllDoneRef.current) {
       setDoneFlash(true);
+      hapticSuccess();
       setTimeout(() => setDoneFlash(false), 2200);
     }
     prevAllDoneRef.current = nowAllDone;
@@ -176,6 +179,7 @@ export default function ResultPage() {
   function handleFinish() {
     if (!endingTriggered) {
       setEndingTriggered(true);
+      hapticHeavy();
       setShowEnding(true);
     } else {
       router.push("/");
@@ -191,6 +195,7 @@ export default function ResultPage() {
   }
 
   async function handleShare() {
+    hapticLight();
     const scoreLabel = messScore >= 70 ? "많이 어지러운 방" : messScore >= 40 ? "조금 어지러운 방" : "꽤 깨끗한 방";
     const text = `방구조대가 내 방을 분석했어요!\n\n어지러움 점수: ${messScore}점 (${scoreLabel})\n${result?.summary ?? ""}\n\n정리 순서 ${result?.steps.length ?? 0}단계 뽑기 완료 🧹`;
     if (navigator.share) {
@@ -208,6 +213,7 @@ export default function ResultPage() {
     setStreak({ current: s.current, best: s.best });
     saveHistory(result!, checkedCount, afterImage ?? undefined);
     setSaved(true);
+    hapticSuccess();
   }
 
   async function handleAfterImage(file: File) {
@@ -233,6 +239,7 @@ export default function ResultPage() {
 
   async function compare() {
     if (!afterImage || !result?.imageB64) return;
+    hapticMedium();
     setComparing(true);
     try {
       const res = await fetch("/api/compare", {
