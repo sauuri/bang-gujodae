@@ -304,7 +304,7 @@ export default function Home() {
             </div>
 
             <input type="range" min={1} max={10} value={energy}
-              onChange={(e) => { const v = Number(e.target.value); if (v !== energy) hapticLight(); setEnergy(v); }}
+              onChange={(e) => { const v = Number(e.target.value); if (v !== energy) { (v === 1 || v === 10) ? hapticMedium() : hapticLight(); } setEnergy(v); }}
               className="slider" />
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
               <span style={{ fontSize: 10, color: "#ccc" }}>방전 😵</span>
