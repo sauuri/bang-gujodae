@@ -49,6 +49,8 @@ function playSfxCheck(checked: boolean) {
 import RobotSprite from "../components/RobotSprite";
 import CleaningEnding from "../components/CleaningEnding";
 import { bridgeSetTimer, bridgeClearTimer } from "../utils/timerBridge";
+import { useLang } from "../utils/LangContext";
+import { t } from "../utils/i18n";
 
 function parseDurationSecs(dur: string): number {
   const h = dur.match(/(\d+)\s*시간/);
@@ -131,9 +133,8 @@ function saveHistory(result: RescueResult, completedCount: number, afterImageB64
   } catch {}
 }
 
-function MessScoreRing({ score }: { score: number }) {
+function MessScoreRing({ score, scoreLabel, scoreSub, messLabel }: { score: number; scoreLabel: string; scoreSub: string; messLabel: string }) {
   const color = score >= 70 ? "#ef4444" : score >= 40 ? "#f59e0b" : "#16a34a";
-  const label = score >= 70 ? "많이 어지러워요" : score >= 40 ? "조금 어지러워요" : "꽤 깨끗해요";
   const r = 36, circ = 2 * Math.PI * r;
   const dash = circ * (1 - score / 100);
   return (
@@ -149,9 +150,9 @@ function MessScoreRing({ score }: { score: number }) {
         </text>
       </svg>
       <div>
-        <div style={{ fontSize: 11, color: "#8e8e93", marginBottom: 4 }}>어지러움 점수</div>
-        <div style={{ fontSize: 15, fontWeight: 800, color }}>{label}</div>
-        <div style={{ fontSize: 12, color: "#8e8e93", marginTop: 2 }}>0 = 완벽 · 100 = 혼돈</div>
+        <div style={{ fontSize: 11, color: "#8e8e93", marginBottom: 4 }}>{scoreLabel}</div>
+        <div style={{ fontSize: 15, fontWeight: 800, color }}>{messLabel}</div>
+        <div style={{ fontSize: 12, color: "#8e8e93", marginTop: 2 }}>{scoreSub}</div>
       </div>
     </div>
   );
@@ -159,6 +160,8 @@ function MessScoreRing({ score }: { score: number }) {
 
 export default function ResultPage() {
   const router = useRouter();
+  const { lang, toggle: toggleLang } = useLang();
+  const tr = t(lang);
   const [result, setResult] = useState<RescueResult | null>(null);
   const [checked, setChecked] = useState<boolean[]>([]);
   const [afterImage, setAfterImage] = useState<string | null>(null);
@@ -268,8 +271,8 @@ export default function ResultPage() {
 
   async function handleShare() {
     hapticLight();
-    const scoreLabel = messScore >= 70 ? "많이 어지러운 방" : messScore >= 40 ? "조금 어지러운 방" : "꽤 깨끗한 방";
-    const text = `방구조대가 내 방을 분석했어요!\n\n어지러움 점수: ${messScore}점 (${scoreLabel})\n${result?.summary ?? ""}\n\n정리 순서 ${result?.steps.length ?? 0}단계 뽑기 완료 🧹`;
+    const scoreLabel = messScore >= 70 ? tr.messHigh : messScore >= 40 ? tr.messMid : tr.messLow;
+    const text = tr.shareText(messScore, scoreLabel, result?.summary ?? "", result?.steps.length ?? 0);
     if (navigator.share) {
       try {
         await navigator.share({ title: "방구조대 분석 결과", text, url: "https://bang-gujodae.vercel.app" });
@@ -352,7 +355,7 @@ export default function ResultPage() {
 
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 2, marginBottom: 8 }}>
-            {timer.done ? "완료!" : "청소 중"}
+            {timer.done ? tr.done : tr.cleaning}
           </div>
           <div style={{ fontSize: 18, color: "white", fontWeight: 900, lineHeight: 1.4 }}>
             {result.steps[timer.idx].title}
@@ -475,8 +478,8 @@ export default function ResultPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <RobotSprite pose="idle" size={52} />
             <div>
-              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: "rgba(255,255,255,0.8)" }}>방구조대</div>
-              <div style={{ fontSize: 16, fontWeight: 900, color: "white" }}>구조 완료 보고서 🧹</div>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: "rgba(255,255,255,0.8)" }}>{tr.appName}</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: "white" }}>{tr.reportTitle}</div>
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -485,19 +488,29 @@ export default function ResultPage() {
                 🔥 {streak.current}일
               </div>
             )}
-            <button onClick={() => router.push("/")}
-              style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", fontSize: 12, padding: "6px 14px", borderRadius: 20, cursor: "pointer", fontWeight: 700 }}>
-              ← 다시
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={toggleLang} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", fontSize: 12, padding: "6px 14px", borderRadius: 20, cursor: "pointer", fontWeight: 700 }}>
+                {lang === "ko" ? "EN" : "한"}
+              </button>
+              <button onClick={() => router.push("/")}
+                style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", fontSize: 12, padding: "6px 14px", borderRadius: 20, cursor: "pointer", fontWeight: 700 }}>
+                {tr.back}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <div style={{ padding: "0 20px" }}>
 
-        {/* 어지러움 점수 카드 */}
+        {/* \{tr.messScoreLabel\} 카드 */}
         <div className="card" style={{ padding: "20px", marginBottom: 12 }}>
-          <MessScoreRing score={messScore} />
+          <MessScoreRing
+            score={messScore}
+            scoreLabel={tr.messScoreLabel}
+            scoreSub={tr.messScoreSub}
+            messLabel={messScore >= 70 ? tr.messHigh : messScore >= 40 ? tr.messMid : tr.messLow}
+          />
           <div style={{ marginTop: 14, fontSize: 14, color: "#374151", lineHeight: 1.7, borderTop: "1px solid #F2FBEA", paddingTop: 14 }}>
             {result.summary}
           </div>
@@ -570,10 +583,10 @@ export default function ResultPage() {
                 border: `1.5px solid ${allDone ? "#76C442" : "#B5DFA0"}`,
                 fontSize: 13, fontWeight: 700, color: "#5A9E30",
               }}>
-                {checkedCount === 1 && "✓ 시작했어요. 이게 제일 어려운 거예요."}
-                {checkedCount === 2 && "✓✓ 흐름이 생기고 있어요."}
-                {checkedCount >= 3 && !allDone && "✓✓✓ 거의 다 왔어요!"}
-                {allDone && "🎉 다 했어요. 방이 숨 쉬기 시작했어요."}
+                {checkedCount === 1 && tr.progressMsgs[0]}
+                {checkedCount === 2 && tr.progressMsgs[1]}
+                {checkedCount >= 3 && !allDone && tr.progressMsgs[2]}
+                {allDone && tr.progressMsgs[3]}
               </div>
             )}
           </div>
@@ -581,7 +594,7 @@ export default function ResultPage() {
 
         {/* 오늘 안 해도 되는 것 */}
         <div className="card" style={{ padding: "16px 20px", marginBottom: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 10 }}>오늘 안 해도 되는 것</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 10 }}>{tr.skipTitle}</div>
           {result.skip?.map((s, i) => (
             <div key={i} style={{ fontSize: 13, color: "#d1d5db", display: "flex", gap: 8, marginBottom: 5, textDecoration: "line-through" }}>
               <span>✕</span><span>{s}</span>
@@ -674,29 +687,28 @@ export default function ResultPage() {
         )}
 
         <button className="btn-main" onClick={allDone ? handleFinish : () => router.push("/")} style={{ marginBottom: 10 }}>
-          {allDone ? "🎉 완료! 엔딩 보기" : "📸 다른 방 분석하기"}
+          {allDone ? tr.finishBtn : tr.analyzeBtn}
         </button>
 
-        {/* 기록 저장 버튼 */}
         {anyDone && !saved && (
           <button className="btn-main" onClick={handleSave} style={{ marginBottom: 10 }}>
-            💾 오늘 기록 저장하기
+            {tr.save}
           </button>
         )}
         {saved && (
           <div style={{ textAlign: "center", padding: "14px", background: "#DBEFC7", borderRadius: 14, marginBottom: 10, fontSize: 14, fontWeight: 800, color: "#5A9E30" }}>
-            ✓ 저장 완료! 🔥 {streak.current}일 연속 정리 중
+            {tr.savedMsg} 🔥 {streak.current} {tr.streakMsg}
           </div>
         )}
 
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           <button onClick={() => router.push("/history")}
             style={{ flex: 1, padding: "14px", borderRadius: 14, border: "1.5px solid #e5e7eb", background: "#fff", color: "#555", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-            📋 기록 보기
+            {tr.history}
           </button>
           <button onClick={handleShare}
             style={{ flex: 1, padding: "14px", borderRadius: 14, border: "1.5px solid #9FD080", background: "#F2FBEA", color: "#5A9E30", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-            🔗 공유
+            {tr.share}
           </button>
         </div>
         {afterImage && (
@@ -705,7 +717,7 @@ export default function ResultPage() {
             border: "1.5px solid #9FD080", background: "#F2FBEA",
             color: "#5A9E30", fontSize: 13, fontWeight: 700, cursor: "pointer",
           }}>
-            📥 청소 후 사진 저장하기
+            {tr.saveAfterPhoto}
           </button>
         )}
 

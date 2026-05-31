@@ -4,16 +4,23 @@ import { NextRequest, NextResponse } from "next/server";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: NextRequest) {
-  const { imageBase64, timeLeft, energy } = await req.json();
+  const { imageBase64, timeLeft, energy, lang = "ko" } = await req.json();
 
-  const stepCount = energy <= 3 ? "1~2개" : energy <= 6 ? "3~4개" : "4~5개";
+  const isEn = lang === "en";
+  const stepCount = energy <= 3 ? (isEn ? "1~2 steps" : "1~2개") : energy <= 6 ? (isEn ? "3~4 steps" : "3~4개") : (isEn ? "4~5 steps" : "4~5개");
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `당신은 방 정리 전문가예요. 사진 속 방을 직접 보고 지금 당장 실행 가능한 정리 순서를 뽑아줍니다.
+  const systemPrompt = isEn
+    ? `You are a professional room organizer. Look at the photo and give an immediately actionable cleaning order.
+
+Rules:
+1. Step title must be "verb + specific object" (e.g., "Move cups and bottles on desk to kitchen", "Throw floor clothes into laundry basket")
+   — Never use vague terms like "clean up" or "organize"
+2. Only mention items actually visible in the photo
+3. reason is one sentence explaining WHY this order — psychological or efficiency reason
+4. skip items must also be based on what's visible in the photo
+5. Low energy = only easy fast tasks; high energy = more tasks
+Respond in JSON only.`
+    : `당신은 방 정리 전문가예요. 사진 속 방을 직접 보고 지금 당장 실행 가능한 정리 순서를 뽑아줍니다.
 
 절대 지켜야 할 규칙:
 1. 단계 title은 반드시 "동사 + 구체적 대상"으로 (예: "책상 위 컵·병 주방으로 옮기기", "바닥 옷가지 세탁바구니에 던져 넣기")
@@ -22,18 +29,28 @@ export async function POST(req: NextRequest) {
 3. reason은 "왜 이 순서인지" 한 문장 — 심리적 이유 또는 효율 이유
 4. skip도 사진에서 보이는 것 기준으로만
 5. 에너지가 낮으면 아주 쉽고 빠른 것만, 높으면 더 많이
-반드시 JSON만 응답하세요.`,
-      },
-      {
-        role: "user",
-        content: [
-          {
-            type: "image_url",
-            image_url: { url: imageBase64, detail: "low" },
-          },
-          {
-            type: "text",
-            text: `에너지 레벨: ${energy}/10, 가용 시간: ${timeLeft}
+반드시 JSON만 응답하세요.`;
+
+  const userPrompt = isEn
+    ? `Energy level: ${energy}/10, Available time: ${timeLeft}
+
+Respond in this JSON format (all text fields in English):
+{
+  "messScore": 0~100,
+  "difficulty": "low|medium|high",
+  "difficultyScore": 1~10,
+  "summary": "One warm, non-judgmental sentence about the room's state (e.g., 'Looks like a long day — a little effort will make a big difference.')",
+  "timeEstimate": "estimated time needed",
+  "steps": [
+    { "order": 1, "title": "Specific action (name the object)", "duration": "Nm", "reason": "Why this order" }
+  ],
+  "skip": ["2~3 things visible in photo that can be skipped today"],
+  "message": "One line of encouragement perfect for someone at energy ${energy}/10"
+}
+
+messScore scale: 0=perfectly clean, 30=slightly messy, 60=quite messy, 80=very messy, 100=chaos
+steps count: ${stepCount} (only what can realistically be done in ${timeLeft} at energy ${energy}/10)`
+    : `에너지 레벨: ${energy}/10, 가용 시간: ${timeLeft}
 
 아래 JSON 형식으로 응답:
 {
@@ -50,8 +67,17 @@ export async function POST(req: NextRequest) {
 }
 
 messScore 기준: 0=완벽히 깨끗, 30=약간 어수선, 60=꽤 어지러움, 80=많이 어지러움, 100=혼돈
-steps 개수: ${stepCount} (에너지와 시간 ${timeLeft} 안에 실제로 끝낼 수 있는 것만)`,
-          },
+steps 개수: ${stepCount} (에너지와 시간 ${timeLeft} 안에 실제로 끝낼 수 있는 것만)`;
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: systemPrompt },
+      {
+        role: "user",
+        content: [
+          { type: "image_url", image_url: { url: imageBase64, detail: "low" } },
+          { type: "text", text: userPrompt },
         ],
       },
     ],

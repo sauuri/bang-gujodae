@@ -1,0 +1,186 @@
+export type Lang = "ko" | "en";
+
+export const translations = {
+  ko: {
+    // 앱 이름 & 공통
+    appName: "방구조대",
+    back: "← 다시",
+    share: "🔗 공유",
+    save: "💾 오늘 기록 저장하기",
+    saved: "저장 완료!",
+    history: "📋 기록 보기",
+    streakDays: "일",
+    times: "회",
+
+    // 메인 페이지
+    loadingMsgs: [
+      "방 상태 스캔 중...",
+      "어지러움 수준 측정 중...",
+      "정리 순서 계산 중...",
+      "구조 작전 짜는 중...",
+      "거의 다 됐어요...",
+    ],
+    scanning: "방 구조 중",
+    heroLine1: "방 사진 찍으면",
+    heroLine2: "지금 당장 할 것만",
+    heroLine3: "뽑아줄게요.",
+    heroSub: "에너지랑 시간에 맞는 순서만.",
+    uploadLabel: "방 사진 올리기",
+    uploadSub: "탭하거나 드래그",
+    tapReplace: "탭하면 교체",
+    energyLabel: "지금 에너지",
+    energyLow: "방전 😵",
+    energyFull: "풀충전 🚀",
+    timeLabel: "⏱ 쓸 수 있는 시간",
+    timeOptions: ["10분", "20분", "30분", "1시간"],
+    rescueBtn: "🚨 정리 순서 뽑기",
+    uploadFirst: "사진을 먼저 올려주세요",
+    errorMsg: "오류가 발생했어요. 다시 시도해주세요.",
+
+    // 결과 페이지
+    reportTitle: "구조 완료 보고서 🧹",
+    messScoreLabel: "어지러움 점수",
+    messScoreSub: "0 = 완벽 · 100 = 혼돈",
+    messLow: "꽤 깨끗해요",
+    messMid: "조금 어지러워요",
+    messHigh: "많이 어지러워요",
+    stepsTitle: "🧹 지금 할 순서",
+    allDone: "완료 🎉",
+    skipTitle: "오늘 안 해도 되는 것",
+    beforeAfterTitle: "📸 Before / After",
+    beforeAfterSub: "같은 방향에서 찍으면 AI가 변화를 비교해줘요",
+    before: "BEFORE",
+    after: "AFTER",
+    uploadAfter: "📸 정리 후 사진 올리기",
+    compareBtn: "✨ 얼마나 달라졌는지 봐줘",
+    comparing: "🔍 비교 중...",
+    changeScore: "변화 점수",
+    shareCompare: "📤 비교 결과 공유하기",
+    finishBtn: "🎉 완료! 엔딩 보기",
+    analyzeBtn: "📸 다른 방 분석하기",
+    saveAfterPhoto: "📥 청소 후 사진 저장하기",
+    progressMsgs: [
+      "✓ 시작했어요. 이게 제일 어려운 거예요.",
+      "✓✓ 흐름이 생기고 있어요.",
+      "✓✓✓ 거의 다 왔어요!",
+      "🎉 다 했어요. 방이 숨 쉬기 시작했어요.",
+    ],
+    savedMsg: "✓ 저장 완료! 🔥",
+    streakMsg: "일 연속 정리 중",
+    shareText: (score: number, label: string, summary: string, steps: number) =>
+      `방구조대가 내 방을 분석했어요!\n\n어지러움 점수: ${score}점 (${label})\n${summary}\n\n정리 순서 ${steps}단계 뽑기 완료 🧹`,
+    timerDone: "시간 다 됐어요! 깨끗해졌나요?",
+    timerDoneBtn: "✅ 완료했어요!",
+    timerSkip: "😅 못 했지만 괜찮아요",
+    timerEarlyDone: "✅ 벌써 다 했어요!",
+    timerCancel: "✕ 나중에 할게요",
+    cleaning: "청소 중",
+    done: "완료!",
+    remaining: "남음",
+
+    // 히스토리
+    historyTitle: "📋 정리 기록",
+    historyEmpty: "아직 기록이 없어요",
+    historyEmptySub: "방 정리를 완료하면 여기에 기록돼요.",
+    historyRate: "완료율",
+    historyDelete: "기록 전체 삭제",
+    historyDeleteConfirm: "기록을 전체 삭제할까요?",
+  },
+
+  en: {
+    appName: "RoomRescue",
+    back: "← Back",
+    share: "🔗 Share",
+    save: "💾 Save Today's Record",
+    saved: "Saved!",
+    history: "📋 History",
+    streakDays: "d",
+    times: "x",
+
+    loadingMsgs: [
+      "Scanning room...",
+      "Measuring mess level...",
+      "Calculating order...",
+      "Planning rescue mission...",
+      "Almost done...",
+    ],
+    scanning: "Rescuing Room",
+    heroLine1: "Take a photo of your room,",
+    heroLine2: "get only what to do",
+    heroLine3: "right now.",
+    heroSub: "Tailored to your energy & time.",
+    uploadLabel: "Upload Room Photo",
+    uploadSub: "Tap or drag",
+    tapReplace: "Tap to replace",
+    energyLabel: "Current Energy",
+    energyLow: "Dead 😵",
+    energyFull: "Full 🚀",
+    timeLabel: "⏱ Time available",
+    timeOptions: ["10m", "20m", "30m", "1h"],
+    rescueBtn: "🚨 Get Cleaning Order",
+    uploadFirst: "Please upload a photo first",
+    errorMsg: "Something went wrong. Please try again.",
+
+    reportTitle: "Rescue Report 🧹",
+    messScoreLabel: "Mess Score",
+    messScoreSub: "0 = Perfect · 100 = Chaos",
+    messLow: "Pretty clean",
+    messMid: "A little messy",
+    messHigh: "Very messy",
+    stepsTitle: "🧹 Do This Now",
+    allDone: "Done 🎉",
+    skipTitle: "Skip for today",
+    beforeAfterTitle: "📸 Before / After",
+    beforeAfterSub: "Take a photo from the same angle — AI will compare the change",
+    before: "BEFORE",
+    after: "AFTER",
+    uploadAfter: "📸 Upload After Photo",
+    compareBtn: "✨ See how much changed",
+    comparing: "🔍 Comparing...",
+    changeScore: "Change Score",
+    shareCompare: "📤 Share Comparison",
+    finishBtn: "🎉 Done! See Ending",
+    analyzeBtn: "📸 Analyze Another Room",
+    saveAfterPhoto: "📥 Save After Photo",
+    progressMsgs: [
+      "✓ You started. That's the hardest part.",
+      "✓✓ You're in the flow.",
+      "✓✓✓ Almost there!",
+      "🎉 All done. The room can breathe.",
+    ],
+    savedMsg: "✓ Saved! 🔥",
+    streakMsg: "day streak",
+    shareText: (score: number, label: string, summary: string, steps: number) =>
+      `RoomRescue analyzed my room!\n\nMess Score: ${score} (${label})\n${summary}\n\n${steps}-step cleaning plan ready 🧹`,
+    timerDone: "Time's up! How'd it go?",
+    timerDoneBtn: "✅ Done!",
+    timerSkip: "😅 Not done, but that's okay",
+    timerEarlyDone: "✅ Already finished!",
+    timerCancel: "✕ Later",
+    cleaning: "Cleaning",
+    done: "Done!",
+    remaining: "left",
+
+    historyTitle: "📋 Cleaning History",
+    historyEmpty: "No records yet",
+    historyEmptySub: "Complete a cleaning session to see it here.",
+    historyRate: "Completion",
+    historyDelete: "Delete all records",
+    historyDeleteConfirm: "Delete all records?",
+  },
+} as const;
+
+export type T = typeof translations.ko;
+
+export function getLang(): Lang {
+  if (typeof window === "undefined") return "ko";
+  return (localStorage.getItem("lang") as Lang) || "ko";
+}
+
+export function setLang(lang: Lang) {
+  localStorage.setItem("lang", lang);
+}
+
+export function t(lang: Lang): T {
+  return translations[lang] as unknown as T;
+}

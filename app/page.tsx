@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import SplashIntro from "./components/SplashIntro";
 import RobotSprite from "./components/RobotSprite";
 import { hapticLight, hapticMedium } from "./utils/haptics";
+import { useLang } from "./utils/LangContext";
+import { t } from "./utils/i18n";
 
 async function resizeImage(file: File): Promise<string> {
   return new Promise((resolve) => {
@@ -24,13 +26,6 @@ async function resizeImage(file: File): Promise<string> {
   });
 }
 
-const LOADING_MSGS = [
-  "방 상태 스캔 중...",
-  "어지러움 수준 측정 중...",
-  "정리 순서 계산 중...",
-  "구조 작전 짜는 중...",
-  "거의 다 됐어요...",
-];
 
 const ENERGY_EMOJI: Record<number, string> = {
   1: "😵", 2: "😩", 3: "😮‍💨", 4: "😐", 5: "🙂",
@@ -40,13 +35,15 @@ const ENERGY_EMOJI: Record<number, string> = {
 export default function Home() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const { lang, toggle } = useLang();
+  const tr = t(lang);
 
   const [preview, setPreview]         = useState<string | null>(null);
   const [imageB64, setImageB64]       = useState<string | null>(null);
   const [energy, setEnergy]           = useState(5);
-  const [timeLeft, setTimeLeft]       = useState("20분");
+  const [timeLeft, setTimeLeft]       = useState("");
   const [loading, setLoading]         = useState(false);
-  const [loadingMsg, setLoadingMsg]   = useState(LOADING_MSGS[0]);
+  const [loadingMsg, setLoadingMsg]   = useState<string>(tr.loadingMsgs[0]);
   const [sweepDir, setSweepDir]       = useState<"walkLeft" | "walkRight">("walkRight");
   const [dragOver, setDragOver]       = useState(false);
   const [streak, setStreak]           = useState({ current: 0, best: 0 });
@@ -66,11 +63,16 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (!timeLeft) setTimeLeft(tr.timeOptions[1]);
+  }, [lang]);
+
+  useEffect(() => {
     if (!loading) return;
     let i = 0;
+    const msgs = tr.loadingMsgs;
     const iv = setInterval(() => {
-      i = (i + 1) % LOADING_MSGS.length;
-      setLoadingMsg(LOADING_MSGS[i]);
+      i = (i + 1) % msgs.length;
+      setLoadingMsg(msgs[i]);
     }, 1800);
     const sv = setInterval(() => {
       setSweepDir(d => d === "walkRight" ? "walkLeft" : "walkRight");
@@ -89,18 +91,18 @@ export default function Home() {
     if (!imageB64) return;
     hapticMedium();
     setLoading(true);
-    setLoadingMsg(LOADING_MSGS[0]);
+    setLoadingMsg(tr.loadingMsgs[0]);
     try {
       const res = await fetch("/api/rescue", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: imageB64, timeLeft, energy }),
+        body: JSON.stringify({ imageBase64: imageB64, timeLeft, energy, lang }),
       });
       const data = await res.json();
       localStorage.setItem("rescueResult", JSON.stringify({ ...data, imageB64 }));
       router.push("/result");
     } catch {
-      alert("오류가 발생했어요. 다시 시도해주세요.");
+      alert(tr.errorMsg);
     } finally {
       setLoading(false);
     }
@@ -131,7 +133,7 @@ export default function Home() {
             <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid #5A9E30", animation: "scanRing 2s ease-out 1.4s infinite", opacity: 0 }} />
             <RobotSprite pose={sweepDir} size={110} />
           </div>
-          <div style={{ fontSize: 18, fontWeight: 900, color: "#1a2744" }}>방 구조 중</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: "#1a2744" }}>{tr.scanning}</div>
           <div style={{ fontSize: 13, color: "#5A9E30", fontWeight: 700, transition: "all 0.4s" }}>{loadingMsg}</div>
           <div style={{ width: 160, height: 5, background: "#DBEFC7", borderRadius: 4, overflow: "hidden" }}>
             <div style={{
@@ -179,7 +181,7 @@ export default function Home() {
               background: "rgba(255,255,255,0.22)",
               borderRadius: 50, padding: "5px 14px",
             }}>
-              <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "white" }}>방구조대</span>
+              <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "white" }}>{tr.appName}</span>
               <span style={{ fontSize: 16, lineHeight: 1 }}>🚨</span>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
@@ -189,7 +191,7 @@ export default function Home() {
                   borderRadius: 50, padding: "5px 12px",
                   fontSize: 12, fontWeight: 800, color: "white",
                 }}>
-                  🔥 {streak.current}일
+                  🔥 {streak.current}{tr.streakDays}
                 </div>
               )}
               {historyCount > 0 && (
@@ -198,9 +200,16 @@ export default function Home() {
                   borderRadius: 50, padding: "5px 12px",
                   fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer",
                 }}>
-                  📋 {historyCount}회
+                  📋 {historyCount}{tr.times}
                 </div>
               )}
+              <button onClick={toggle} style={{
+                background: "rgba(255,255,255,0.2)", border: "none",
+                borderRadius: 50, padding: "5px 12px",
+                fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer",
+              }}>
+                {lang === "ko" ? "EN" : "한"}
+              </button>
             </div>
           </div>
 
@@ -212,12 +221,12 @@ export default function Home() {
                 color: "white", letterSpacing: -0.5,
                 textShadow: "0 2px 8px rgba(0,0,0,0.1)",
               }}>
-                방 사진 찍으면<br />
-                <span style={{ color: "#FFD54F" }}>지금 당장 할 것만</span><br />
-                뽑아줄게요.
+                {tr.heroLine1}<br />
+                <span style={{ color: "#FFD54F" }}>{tr.heroLine2}</span><br />
+                {tr.heroLine3}
               </h1>
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginTop: 6 }}>
-                에너지랑 시간에 맞는 순서만.
+                {tr.heroSub}
               </p>
             </div>
             <RobotSprite
@@ -258,7 +267,7 @@ export default function Home() {
                     background: "rgba(0,0,0,0.45)", color: "white",
                     fontSize: 11, fontWeight: 700, padding: "4px 10px",
                     borderRadius: 20, backdropFilter: "blur(4px)",
-                  }}>탭하면 교체</div>
+                  }}>{tr.tapReplace}</div>
                 </div>
               ) : (
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -270,8 +279,8 @@ export default function Home() {
                     <span style={{ fontSize: 26 }}>📸</span>
                   </div>
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: "#1a2744", marginBottom: 3 }}>방 사진 올리기</p>
-                    <p style={{ fontSize: 11, color: "#c0c0c0" }}>탭하거나 드래그</p>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: "#1a2744", marginBottom: 3 }}>{tr.uploadLabel}</p>
+                    <p style={{ fontSize: 11, color: "#c0c0c0" }}>{tr.uploadSub}</p>
                   </div>
                 </div>
               )}
@@ -285,7 +294,7 @@ export default function Home() {
           {/* 에너지 카드 */}
           <div className="card" style={{ padding: "14px 16px", marginBottom: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#666" }}>지금 에너지</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#666" }}>{tr.energyLabel}</span>
               <span style={{ fontSize: 18, fontWeight: 900, color: "#5A9E30" }}>
                 {ENERGY_EMOJI[energy]}{" "}
                 <span style={{ fontSize: 16, color: "#1a2744" }}>{energy}</span>
@@ -307,24 +316,24 @@ export default function Home() {
               onChange={(e) => { const v = Number(e.target.value); if (v !== energy) { (v === 1 || v === 10) ? hapticMedium() : hapticLight(); } setEnergy(v); }}
               className="slider" />
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-              <span style={{ fontSize: 10, color: "#ccc" }}>방전 😵</span>
-              <span style={{ fontSize: 10, color: "#ccc" }}>풀충전 🚀</span>
+              <span style={{ fontSize: 10, color: "#ccc" }}>{tr.energyLow}</span>
+              <span style={{ fontSize: 10, color: "#ccc" }}>{tr.energyFull}</span>
             </div>
           </div>
 
           {/* 시간 카드 */}
           <div className="card" style={{ padding: "14px 16px", marginBottom: 14 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#666", marginBottom: 10 }}>
-              ⏱ 쓸 수 있는 시간
+              {tr.timeLabel}
             </div>
             <div className="time-grid">
-              {["10분", "20분", "30분", "1시간"].map((t) => (
+              {tr.timeOptions.map((opt) => (
                 <button
-                  key={t}
-                  className={`time-btn${timeLeft === t ? " active" : ""}`}
-                  onClick={() => { hapticLight(); setTimeLeft(t); }}
+                  key={opt}
+                  className={`time-btn${timeLeft === opt ? " active" : ""}`}
+                  onClick={() => { hapticLight(); setTimeLeft(opt); }}
                 >
-                  {t}
+                  {opt}
                 </button>
               ))}
             </div>
@@ -332,11 +341,11 @@ export default function Home() {
 
           {/* 출동 버튼 */}
           <button className="btn-main" onClick={handleSubmit} disabled={loading || !imageB64}>
-            🚨 정리 순서 뽑기
+            {tr.rescueBtn}
           </button>
           {!imageB64 && (
             <p style={{ textAlign: "center", fontSize: 11, color: "#ccc", marginTop: 8 }}>
-              사진을 먼저 올려주세요
+              {tr.uploadFirst}
             </p>
           )}
 

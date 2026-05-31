@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { LangProvider } from "./utils/LangContext";
 
 export const metadata: Metadata = {
   title: "방구조대 — 방 정리 순서 AI",
@@ -15,7 +16,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body style={{ background: "#F2FBEA" }}>{children}</body>
+      <body style={{ background: "#F2FBEA" }}>
+        <LangProvider>{children}</LangProvider>
+      </body>
     </html>
   );
 }
