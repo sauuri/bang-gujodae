@@ -34,8 +34,8 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         config.planeDetection = [.horizontal]
         sceneView.session.run(config)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.placeZonesAndSteps()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            self?.placeStepsInWorld()
         }
     }
 
@@ -95,9 +95,9 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         view.addSubview(scanLabel)
     }
 
-    // MARK: - Place Zones and Steps
+    // MARK: - Place Steps
 
-    private func placeZonesAndSteps() {
+    private func placeStepsInWorld() {
         guard !placedSteps, let frame = sceneView.session.currentFrame else { return }
         placedSteps = true
 
@@ -107,40 +107,19 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         let camPos  = SIMD3<Float>(t.columns.3.x,  t.columns.3.y,  t.columns.3.z)
         let forward = SIMD3<Float>(-t.columns.2.x, -t.columns.2.y, -t.columns.2.z)
         let right   = SIMD3<Float>(t.columns.0.x,   t.columns.0.y,  t.columns.0.z)
-        let up      = SIMD3<Float>(t.columns.1.x,   t.columns.1.y,  t.columns.1.z)
 
-        // 청소 영역 이미지 (바운딩 박스 포함)
-        if let zonesImage = generateRoomWithZones() {
-            let zoneNode = makeZoneNode(image: zonesImage)
-            let pos = camPos + forward * 1.2
-            zoneNode.position = SCNVector3(pos.x, pos.y, pos.z)
-            zoneNode.scale = SCNVector3(1, 1, 1)
-
-            let billboard = SCNBillboardConstraint()
-            billboard.freeAxes = .Y
-            zoneNode.constraints = [billboard]
-
-            sceneView.scene.rootNode.addChildNode(zoneNode)
-
-            SCNTransaction.begin()
-            SCNTransaction.animationDuration = 0.6
-            zoneNode.opacity = 1
-            SCNTransaction.commit()
-        }
-
-        // Step 카드들 (더 작게, 위에)
         let count = steps.count
-        let spread: Float = .pi / 3
-        let dist: Float   = 0.8
+        let spread: Float = .pi / 4
+        let dist: Float   = 1.1
 
         for (i, step) in steps.enumerated() {
             let ratio = count > 1 ? Float(i) / Float(count - 1) - 0.5 : 0
             let angle = ratio * spread
 
             let pos = camPos
-                + forward * 0.9
+                + forward * (cos(angle) * dist)
                 + right   * (sin(angle) * dist)
-                + SIMD3<Float>(0, 0.25, 0)
+                + SIMD3<Float>(0, -0.15, 0)
 
             let node = makeStepNode(step: step, index: i)
             node.position = SCNVector3(pos.x, pos.y, pos.z)
@@ -162,18 +141,6 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
                 SCNTransaction.commit()
             }
         }
-    }
-
-    private func makeZoneNode(image: UIImage) -> SCNNode {
-        let plane = SCNPlane(width: 1.2, height: 0.675)
-        plane.firstMaterial?.diffuse.contents = image
-        plane.firstMaterial?.isDoubleSided = true
-
-        let node = SCNNode(geometry: plane)
-        node.name = "zones_image"
-        node.opacity = 0
-
-        return node
     }
 
     // MARK: - Node Creation
@@ -363,59 +330,5 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         dismiss(animated: true) { [weak self] in
             self?.onClose?(self?.checkedIndices.count ?? 0)
         }
-    }
-
-    // MARK: - Cleaning Zones Image
-
-    private func generateRoomWithZones() -> UIImage? {
-        guard let originalImage = UIImage(named: "room-messy") else { return nil }
-
-        let size = originalImage.size
-        let renderer = UIGraphicsImageRenderer(size: size)
-
-        return renderer.image { ctx in
-            originalImage.draw(at: .zero)
-
-            let zones: [(label: String, rect: CGRect, color: UIColor)] = [
-                ("1", CGRect(x: size.width * 0.6, y: size.height * 0.35, width: size.width * 0.35, height: size.height * 0.45), .systemRed),
-                ("2", CGRect(x: size.width * 0.1, y: size.height * 0.45, width: size.width * 0.8, height: size.height * 0.4), .systemBlue),
-                ("3", CGRect(x: size.width * 0.02, y: size.height * 0.1, width: size.width * 0.3, height: size.height * 0.5), .systemGreen),
-                ("4", CGRect(x: size.width * 0.3, y: size.height * 0.02, width: size.width * 0.65, height: size.height * 0.25), .systemYellow),
-            ]
-
-            for zone in zones {
-                drawZone(ctx: ctx.cgContext, rect: zone.rect, label: zone.label, color: zone.color)
-            }
-        }
-    }
-
-    private func drawZone(ctx: CGContext, rect: CGRect, label: String, color: UIColor) {
-        ctx.setStrokeColor(color.cgColor)
-        ctx.setLineWidth(4)
-        ctx.stroke(rect)
-
-        let badgeSize: CGFloat = 50
-        let badgeRect = CGRect(
-            x: rect.minX - badgeSize / 2,
-            y: rect.minY - badgeSize / 2,
-            width: badgeSize,
-            height: badgeSize
-        )
-
-        ctx.setFillColor(color.cgColor)
-        ctx.fillEllipse(in: badgeRect)
-
-        let attrs: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 32, weight: .black),
-            .foregroundColor: UIColor.white
-        ]
-        let textSize = (label as NSString).size(withAttributes: attrs)
-        (label as NSString).draw(
-            at: CGPoint(
-                x: badgeRect.midX - textSize.width / 2,
-                y: badgeRect.midY - textSize.height / 2
-            ),
-            withAttributes: attrs
-        )
     }
 }
