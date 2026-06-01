@@ -217,26 +217,17 @@ export default function Home() {
                   📋 {historyCount}{tr.times}
                 </div>
               )}
-              {premiumState.isPremium ? (
-                <div style={{
-                  background: "rgba(255,255,255,0.3)",
+              <button
+                onClick={() => router.push("/upgrade")}
+                style={{
+                  background: premiumState.isPremium ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.18)",
+                  border: premiumState.isPremium ? "1.5px solid rgba(255,255,255,0.6)" : "none",
                   borderRadius: 50, padding: "5px 12px",
-                  fontSize: 12, fontWeight: 800, color: "white",
-                }}>
-                  ⭐ Pro
-                </div>
-              ) : (
-                <button
-                  onClick={() => router.push("/upgrade")}
-                  style={{
-                    background: "rgba(255,255,255,0.2)", border: "none",
-                    borderRadius: 50, padding: "5px 12px",
-                    fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer",
-                  }}
-                >
-                  ⭐ Pro
-                </button>
-              )}
+                  fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer",
+                }}
+              >
+                {premiumState.isPremium ? "⭐ Pro" : "⭐ Pro"}
+              </button>
               <button onClick={toggle} style={{
                 background: "rgba(255,255,255,0.2)", border: "none",
                 borderRadius: 50, padding: "5px 12px",
@@ -279,10 +270,24 @@ export default function Home() {
         </div>
 
         {/* 본문 */}
-        <div style={{ padding: "0 16px", marginTop: 14 }}>
+        <div style={{ padding: "0 16px", marginTop: 16 }}>
+
+          {/* 무료 분석 잔여 표시 (비프리미엄만) */}
+          {!premiumState.isPremium && premiumState.freeAnalysisCount > 0 && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, padding: "8px 12px", background: "white", borderRadius: 10, border: "1px solid #E8F5E9" }}>
+              <span style={{ fontSize: 12, color: "#888" }}>
+                {lang === "ko" ? `무료 분석 ${10 - premiumState.freeAnalysisCount}회 남음` : `${10 - premiumState.freeAnalysisCount} free analyses left`}
+              </span>
+              <div style={{ display: "flex", gap: 3 }}>
+                {Array.from({ length: 10 }, (_, i) => (
+                  <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i < premiumState.freeAnalysisCount ? "#5A9E30" : "#E0E0E0" }} />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 사진 업로드 */}
-          <div style={{ marginBottom: 10 }}>
+          <div style={{ marginBottom: 12 }}>
             <div
               className={`upload-zone${dragOver ? " drag-over" : ""}`}
               onClick={() => inputRef.current?.click()}
@@ -293,80 +298,56 @@ export default function Home() {
             >
               {preview ? (
                 <div style={{ position: "relative" }}>
-                  <img src={preview} alt="preview" style={{
-                    width: "100%", height: 200, objectFit: "cover", display: "block",
-                  }} />
-                  <div style={{
-                    position: "absolute", bottom: 8, right: 8,
-                    background: "rgba(0,0,0,0.45)", color: "white",
-                    fontSize: 11, fontWeight: 700, padding: "4px 10px",
-                    borderRadius: 20, backdropFilter: "blur(4px)",
-                  }}>{tr.tapReplace}</div>
+                  <img src={preview} alt="preview" style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} />
+                  <div style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(0,0,0,0.45)", color: "white", fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20, backdropFilter: "blur(4px)" }}>
+                    {tr.tapReplace}
+                  </div>
                 </div>
               ) : (
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <div style={{
-                    width: 52, height: 52, borderRadius: 16, flexShrink: 0,
-                    background: "#F2FBEA", border: "1.5px solid #B5DFA0",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 16, flexShrink: 0, background: "#F2FBEA", border: "1.5px solid #B5DFA0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: 26 }}>📸</span>
                   </div>
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: "#1a2744", marginBottom: 3 }}>{tr.uploadLabel}</p>
-                    <p style={{ fontSize: 11, color: "#c0c0c0" }}>{tr.uploadSub}</p>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: "#1a2744", marginBottom: 4 }}>{tr.uploadLabel}</p>
+                    <p style={{ fontSize: 12, color: "#bbb", lineHeight: 1.4 }}>{tr.uploadSub}</p>
                   </div>
                 </div>
               )}
-
-              <input ref={inputRef} type="file" accept="image/*" capture="environment"
-                style={{ display: "none" }}
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+              <input ref={inputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
             </div>
           </div>
 
           {/* 에너지 카드 */}
-          <div className="card" style={{ padding: "14px 16px", marginBottom: 10 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#666" }}>{tr.energyLabel}</span>
-              <span style={{ fontSize: 18, fontWeight: 900, color: "#5A9E30" }}>
+          <div className="card" style={{ padding: "16px", marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>{tr.energyLabel}</span>
+              <span style={{ fontSize: 20, fontWeight: 900, color: "#5A9E30" }}>
                 {ENERGY_EMOJI[energy]}{" "}
                 <span style={{ fontSize: 16, color: "#1a2744" }}>{energy}</span>
-                <span style={{ fontSize: 11, color: "#ccc", fontWeight: 600 }}>/10</span>
+                <span style={{ fontSize: 12, color: "#bbb", fontWeight: 600 }}>/10</span>
               </span>
             </div>
-
-            <div style={{ display: "flex", gap: 4, marginBottom: 10 }}>
+            <div style={{ display: "flex", gap: 4, marginBottom: 12 }}>
               {Array.from({ length: 10 }, (_, i) => (
-                <div key={i} style={{
-                  flex: 1, height: 6, borderRadius: 4,
-                  background: i < energy ? "#76C442" : "#F2FBEA",
-                  transition: "background 0.2s",
-                }} />
+                <div key={i} style={{ flex: 1, height: 6, borderRadius: 4, background: i < energy ? "#76C442" : "#EEF7E6", transition: "background 0.2s" }} />
               ))}
             </div>
-
             <input type="range" min={1} max={10} value={energy}
               onChange={(e) => { const v = Number(e.target.value); if (v !== energy) { (v === 1 || v === 10) ? hapticMedium() : hapticLight(); } setEnergy(v); }}
               className="slider" />
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-              <span style={{ fontSize: 10, color: "#ccc" }}>{tr.energyLow}</span>
-              <span style={{ fontSize: 10, color: "#ccc" }}>{tr.energyFull}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+              <span style={{ fontSize: 11, color: "#bbb" }}>{tr.energyLow}</span>
+              <span style={{ fontSize: 11, color: "#bbb" }}>{tr.energyFull}</span>
             </div>
           </div>
 
           {/* 시간 카드 */}
-          <div className="card" style={{ padding: "14px 16px", marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#666", marginBottom: 10 }}>
-              {tr.timeLabel}
-            </div>
+          <div className="card" style={{ padding: "16px", marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 12 }}>{tr.timeLabel}</div>
             <div className="time-grid">
               {tr.timeOptions.map((opt: string) => (
-                <button
-                  key={opt}
-                  className={`time-btn${timeLeft === opt ? " active" : ""}`}
-                  onClick={() => { hapticLight(); setTimeLeft(opt); }}
-                >
+                <button key={opt} className={`time-btn${timeLeft === opt ? " active" : ""}`} onClick={() => { hapticLight(); setTimeLeft(opt); }}>
                   {opt}
                 </button>
               ))}
@@ -378,7 +359,7 @@ export default function Home() {
             {tr.rescueBtn}
           </button>
           {!imageB64 && (
-            <p style={{ textAlign: "center", fontSize: 11, color: "#ccc", marginTop: 8 }}>
+            <p style={{ textAlign: "center", fontSize: 12, color: "#bbb", marginTop: 8, lineHeight: 1.5 }}>
               {tr.uploadFirst}
             </p>
           )}

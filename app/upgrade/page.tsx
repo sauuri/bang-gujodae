@@ -22,8 +22,22 @@ export default function UpgradePage() {
   const tr = t(lang);
   const [mounted, setMounted] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [devCode, setDevCode] = useState("");
+  const [devError, setDevError] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+
+  function handleDevCode() {
+    if (devCode.trim() === "19990630") {
+      upgrade();
+      setDevCode("");
+      setDevError(false);
+      router.replace("/");
+    } else {
+      setDevError(true);
+      setTimeout(() => setDevError(false), 1500);
+    }
+  }
 
   if (!mounted) return (
     <div style={{ background: "#F2FBEA", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -150,6 +164,44 @@ export default function UpgradePage() {
             <p style={{ textAlign: "center", color: "#bbb", fontSize: 12, marginTop: 12 }}>
               {lang === "ko" ? "현재 테스트 버전입니다." : "Test version — no real charge."}
             </p>
+
+            {/* 개발자 코드 입력 */}
+            <div style={{ marginTop: 32, borderTop: "1px solid #eee", paddingTop: 20 }}>
+              <p style={{ fontSize: 12, color: "#bbb", textAlign: "center", marginBottom: 10 }}>
+                {lang === "ko" ? "코드가 있으신가요?" : "Have a code?"}
+              </p>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  value={devCode}
+                  onChange={(e) => setDevCode(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleDevCode()}
+                  placeholder={lang === "ko" ? "코드 입력" : "Enter code"}
+                  style={{
+                    flex: 1,
+                    padding: "12px 14px",
+                    border: devError ? "1.5px solid #ff6b6b" : "1.5px solid #ddd",
+                    borderRadius: 10,
+                    fontSize: 14,
+                    outline: "none",
+                    background: devError ? "#fff5f5" : "white",
+                    transition: "border 0.2s",
+                    letterSpacing: 2,
+                  }}
+                />
+                <button
+                  onClick={handleDevCode}
+                  style={{ padding: "12px 16px", background: "#5A9E30", color: "white", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+                >
+                  {lang === "ko" ? "확인" : "OK"}
+                </button>
+              </div>
+              {devError && (
+                <p style={{ fontSize: 12, color: "#ff6b6b", marginTop: 6, textAlign: "center" }}>
+                  {lang === "ko" ? "올바르지 않은 코드예요" : "Invalid code"}
+                </p>
+              )}
+            </div>
           </>
         )}
       </div>
