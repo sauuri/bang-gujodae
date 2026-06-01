@@ -172,6 +172,7 @@ export default function ResultPage() {
   const [streak, setStreak] = useState({ current: 0, best: 0 });
   const [showEnding, setShowEnding] = useState(false);
   const [showAR, setShowAR] = useState(false);
+  const [showARInfo, setShowARInfo] = useState(false);
   const [endingTriggered, setEndingTriggered] = useState(false);
   const [doneFlash, setDoneFlash] = useState(false);
   const [timer, setTimer] = useState<TimerState | null>(null);
@@ -446,6 +447,49 @@ export default function ResultPage() {
       <AROverlay steps={result.steps} onClose={() => setShowAR(false)} />
     )}
 
+    {showARInfo && (
+      <div style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+        onClick={() => setShowARInfo(false)}>
+        <div onClick={e => e.stopPropagation()} style={{
+          width: "100%", maxWidth: 480,
+          background: "white", borderRadius: "24px 24px 0 0",
+          padding: "28px 24px calc(env(safe-area-inset-bottom, 24px) + 24px)",
+        }}>
+          <div style={{ width: 40, height: 4, background: "#e5e7eb", borderRadius: 2, margin: "0 auto 24px" }} />
+          <div style={{ fontSize: 36, marginBottom: 12, textAlign: "center" }}>📸</div>
+          <div style={{ fontSize: 20, fontWeight: 900, color: "#1a2744", textAlign: "center", marginBottom: 8 }}>AR 카메라 모드</div>
+          <div style={{ fontSize: 14, color: "#666", textAlign: "center", lineHeight: 1.7, marginBottom: 24 }}>
+            카메라를 켜고 <strong>실제 방을 보면서</strong><br />정리 순서를 하나씩 따라갈 수 있어요.
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
+            {[
+              { icon: "📷", text: "카메라 화면 위에 현재 단계가 오버레이로 표시돼요" },
+              { icon: "✓", text: "완료 버튼 누르면 자동으로 다음 단계로 넘어가요" },
+              { icon: "🔢", text: "상단 점을 눌러 원하는 단계로 바로 이동할 수 있어요" },
+            ].map(({ icon, text }) => (
+              <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", background: "#f8fafc", borderRadius: 12 }}>
+                <span style={{ fontSize: 18 }}>{icon}</span>
+                <span style={{ fontSize: 13, color: "#444", lineHeight: 1.5 }}>{text}</span>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => { setShowARInfo(false); setShowAR(true); hapticSuccess(); }}
+            style={{
+              width: "100%", padding: "16px", borderRadius: 16, border: "none", cursor: "pointer",
+              background: "linear-gradient(135deg, #1a2744, #2d4a8a)",
+              color: "white", fontSize: 16, fontWeight: 900,
+            }}
+          >
+            카메라 켜기
+          </button>
+          <button onClick={() => setShowARInfo(false)} style={{ width: "100%", marginTop: 10, padding: "12px", borderRadius: 16, border: "none", background: "none", cursor: "pointer", color: "#999", fontSize: 14 }}>
+            닫기
+          </button>
+        </div>
+      </div>
+    )}
+
 
     {/* 완료 파티클 */}
     {doneFlash && (
@@ -528,7 +572,7 @@ export default function ResultPage() {
               <span style={{ fontSize: 13, fontWeight: 800, color: "#1a2744" }}>{tr.stepsTitle}</span>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <button
-                  onClick={() => { hapticMedium(); setShowAR(true); }}
+                  onClick={() => { hapticMedium(); setShowARInfo(true); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 4,
                     padding: "5px 12px", borderRadius: 20, border: "none", cursor: "pointer",
@@ -536,7 +580,7 @@ export default function ResultPage() {
                     color: "white", fontSize: 11, fontWeight: 800,
                   }}
                 >
-                  📷 카메라로 따라하기
+                  📸 AR
                 </button>
                 <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? "#5A9E30" : "#aaa" }}>
                   {allDone ? tr.allDone : `${checkedCount}/${result.steps.length}`}
