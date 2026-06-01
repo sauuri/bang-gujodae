@@ -49,6 +49,7 @@ function playSfxCheck(checked: boolean) {
 import RobotSprite from "../components/RobotSprite";
 import CleaningEnding from "../components/CleaningEnding";
 import AROverlay from "../components/AROverlay";
+import { isARSupported, openNativeAR } from "../utils/arBridge";
 import { bridgeSetTimer, bridgeClearTimer } from "../utils/timerBridge";
 import { useLang } from "../utils/LangContext";
 import { t } from "../utils/i18n";
@@ -474,7 +475,16 @@ export default function ResultPage() {
             ))}
           </div>
           <button
-            onClick={() => { setShowARInfo(false); setShowAR(true); hapticSuccess(); }}
+            onClick={async () => {
+              setShowARInfo(false);
+              hapticSuccess();
+              const native = await isARSupported();
+              if (native && result) {
+                await openNativeAR(result.steps);
+              } else {
+                setShowAR(true);
+              }
+            }}
             style={{
               width: "100%", padding: "16px", borderRadius: 16, border: "none", cursor: "pointer",
               background: "linear-gradient(135deg, #1a2744, #2d4a8a)",
