@@ -20,7 +20,16 @@ export default function UpgradePage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <div style={{ background: "#F2FBEA", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <p style={{ fontSize: "2rem" }}>⏳</p>
+          <p style={{ color: "#666" }}>로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleUpgrade = () => {
     upgrade();
