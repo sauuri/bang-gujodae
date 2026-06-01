@@ -100,10 +100,18 @@ export default function Home() {
     // 월 리셋 체크
     resetIfNewMonth();
 
-    // 무료 분석 횟수 체크
-    if (!premiumState.isPremium && !canFreeAnalysis()) {
+    // 무료 분석 횟수 체크 (7회 후 모달)
+    if (!premiumState.isPremium && premiumState.freeAnalysisCount >= 7) {
       setLoading(false);
       setShowUpgradeModal(true);
+      return;
+    }
+
+    // 10회 이상은 완전 차단
+    if (!premiumState.isPremium && !canFreeAnalysis()) {
+      setLoading(false);
+      alert(lang === "ko" ? "무료 분석을 모두 사용했습니다.\nPro로 업그레이드해주세요." : "Free analyses used up.\nPlease upgrade to Pro.");
+      router.push("/upgrade");
       return;
     }
 
@@ -431,7 +439,7 @@ export default function Home() {
             </button>
 
             <h2 style={{ fontSize: "1.3rem", marginBottom: "1rem", color: "#2D5A2D" }}>
-              {lang === "ko" ? "무료 분석을 다 썼어요" : "Free analyses used up"}
+              {lang === "ko" ? `무료 분석 ${10 - premiumState.freeAnalysisCount}회 남았어요` : `${10 - premiumState.freeAnalysisCount} free analyses left`}
             </h2>
 
             <div
@@ -458,8 +466,8 @@ export default function Home() {
 
             <p style={{ color: "#666", marginBottom: "1.5rem" }}>
               {lang === "ko"
-                ? "Pro로 업그레이드하면 무제한 분석이 가능합니다"
-                : "Upgrade to Pro for unlimited analyses"}
+                ? `다음 ${10 - premiumState.freeAnalysisCount}회 분석 후 Pro 구독이 필요합니다.\nPro로 업그레이드하면 무제한 분석이 가능합니다.`
+                : `Pro subscription required after ${10 - premiumState.freeAnalysisCount} more free analyses.\nUpgrade to Pro for unlimited analyses.`}
             </p>
 
             <button

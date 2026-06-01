@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useLang } from "@/app/utils/LangContext";
 import { usePremium } from "@/app/utils/PremiumContext";
 import { t } from "@/app/utils/i18n";
+import { SUBSCRIPTION_PLANS, openPaymentFlow } from "@/app/utils/PaymentService";
 
 export default function UpgradePage() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function UpgradePage() {
   const tr = t(lang);
 
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -131,50 +133,77 @@ export default function UpgradePage() {
           ))}
         </div>
 
-        {/* 가격 */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, #84D98F 0%, #5DC86D 100%)",
-            color: "white",
-            borderRadius: "1rem",
-            padding: "2rem",
-            marginBottom: "2rem",
-            textAlign: "center",
-          }}
-        >
-          <p style={{ fontSize: "0.9rem", opacity: 0.9, marginBottom: "0.5rem" }}>
-            {lang === "ko" ? "매달" : "Per month"}
-          </p>
-          <p style={{ fontSize: "2.5rem", fontWeight: "bold", margin: "0.5rem 0" }}>
-            ₩2,000
-          </p>
-          <p style={{ fontSize: "0.85rem", opacity: 0.8 }}>
-            {lang === "ko" ? "(또는 연 ₩20,000)" : "(or ₩20,000/year)"}
-          </p>
+        {/* 가격 옵션 */}
+        <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
+          {SUBSCRIPTION_PLANS.map((plan) => (
+            <div
+              key={plan.id}
+              style={{
+                flex: 1,
+                background: plan.period === "year" ? "linear-gradient(135deg, #84D98F 0%, #5DC86D 100%)" : "white",
+                color: plan.period === "year" ? "white" : "#333",
+                border: plan.period === "year" ? "none" : "2px solid #84D98F",
+                borderRadius: "1rem",
+                padding: "1.5rem",
+                textAlign: "center",
+              }}
+            >
+              <p style={{ fontSize: "0.85rem", opacity: plan.period === "year" ? 0.9 : 0.7, marginBottom: "0.5rem" }}>
+                {plan.period === "year" && lang === "ko" && "🎉 인기"}
+                {plan.period === "year" && lang !== "ko" && "🎉 Popular"}
+              </p>
+              <p style={{ fontSize: "1.8rem", fontWeight: "bold", margin: "0.5rem 0" }}>
+                ₩{plan.price.toLocaleString()}
+              </p>
+              <p style={{ fontSize: "0.8rem", opacity: plan.period === "year" ? 0.8 : 0.6, marginBottom: "1rem" }}>
+                {plan.period === "month" ? (lang === "ko" ? "매달" : "per month") : (lang === "ko" ? "연간" : "per year")}
+              </p>
+              {plan.period === "year" && (
+                <p style={{ fontSize: "0.75rem", opacity: 0.8, marginBottom: "0.5rem" }}>
+                  {lang === "ko" ? "16% 할인" : "16% off"}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* 버튼 */}
         {!state.isPremium ? (
-          <button
-            onClick={handleUpgrade}
-            style={{
-              width: "100%",
-              padding: "1.2rem",
-              background: "linear-gradient(135deg, #84D98F 0%, #5DC86D 100%)",
-              color: "white",
-              border: "none",
-              borderRadius: "1rem",
-              fontSize: "1.1rem",
-              fontWeight: "bold",
-              cursor: "pointer",
-              marginBottom: "1rem",
-              transition: "opacity 0.2s",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.opacity = "0.9")}
-            onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
-          >
-            🚀 {tr.upgradeBtn}
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {SUBSCRIPTION_PLANS.map((plan) => (
+              <button
+                key={plan.id}
+                onClick={async () => {
+                  setLoading(true);
+                  const success = await openPaymentFlow(plan.id);
+                  if (success) {
+                    // 실제 결제 완료 후 업그레이드
+                    setTimeout(() => {
+                      upgrade();
+                      router.push("/");
+                    }, 1000);
+                  }
+                  setLoading(false);
+                }}
+                disabled={loading}
+                style={{
+                  width: "100%",
+                  padding: "1.2rem",
+                  background: plan.period === "year" ? "linear-gradient(135deg, #84D98F 0%, #5DC86D 100%)" : "white",
+                  color: plan.period === "year" ? "white" : "#5A9E30",
+                  border: plan.period === "year" ? "none" : "2px solid #84D98F",
+                  borderRadius: "1rem",
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                  cursor: loading ? "not-allowed" : "pointer",
+                  opacity: loading ? 0.6 : 1,
+                  transition: "opacity 0.2s",
+                }}
+              >
+                {loading ? (lang === "ko" ? "결제 중..." : "Processing...") : `🚀 ${plan.name} - ₩${plan.price.toLocaleString()}`}
+              </button>
+            ))}
+          </div>
         ) : (
           <>
             <div

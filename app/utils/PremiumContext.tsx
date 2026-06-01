@@ -101,7 +101,7 @@ export function PremiumProvider({ children }: { children: React.ReactNode }) {
   };
 
   const canFreeAnalysis = (): boolean => {
-    return state.freeAnalysisCount < 5;
+    return state.freeAnalysisCount < 10;
   };
 
   const canFocusAnalysis = (): boolean => {

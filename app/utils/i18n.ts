@@ -96,7 +96,7 @@ export const translations: { ko: TranslationStrings; en: TranslationStrings } = 
     // 프리미엄
     premiumBadge: "⭐ Pro",
     upgradeBtn: "Pro 시작하기",
-    freeLeft: (n: number) => `남은 무료 분석: ${n}회`,
+    freeLeft: (n: number) => `남은 무료 분석: ${n}회 (총 10회)`,
     focusMode: "포커스 모드",
     focusModeOn: "포커스 모드 ON",
     streakShield: "🛡️ 오늘 못 했어요",
@@ -230,7 +230,7 @@ export const translations: { ko: TranslationStrings; en: TranslationStrings } = 
     // Premium
     premiumBadge: "⭐ Pro",
     upgradeBtn: "Start Pro",
-    freeLeft: (n: number) => `Free analyses left: ${n}`,
+    freeLeft: (n: number) => `Free analyses left: ${n} (out of 10)`,
     focusMode: "Focus Mode",
     focusModeOn: "Focus Mode ON",
     streakShield: "🛡️ Couldn't do it today",
