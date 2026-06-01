@@ -44,3 +44,4 @@ next-env.d.ts
 ios/
 www/
 public/icon-1024.png
+derived/
