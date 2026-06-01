@@ -188,55 +188,45 @@ export default function Home() {
             pointerEvents: "none",
           }} />
 
-          {/* 상단 바 */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              background: "rgba(255,255,255,0.22)",
-              borderRadius: 50, padding: "5px 14px",
-            }}>
+          {/* 상단 바 1줄: 앱이름 + 언어/Pro */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.22)", borderRadius: 50, padding: "5px 14px" }}>
               <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "white" }}>{tr.appName}</span>
               <span style={{ fontSize: 16, lineHeight: 1 }}>🚨</span>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {streak.current > 0 && (
-                <div style={{
-                  background: "rgba(255,255,255,0.2)",
-                  borderRadius: 50, padding: "5px 12px",
-                  fontSize: 12, fontWeight: 800, color: "white",
-                }}>
-                  🔥 {streak.current}{tr.streakDays}
-                </div>
-              )}
-              {historyCount > 0 && (
-                <div onClick={() => router.push("/history")} style={{
-                  background: "rgba(255,255,255,0.2)",
-                  borderRadius: 50, padding: "5px 12px",
-                  fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer",
-                }}>
-                  📋 {historyCount}{tr.times}
-                </div>
-              )}
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <button onClick={toggle} style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 50, padding: "5px 12px", fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer" }}>
+                {lang === "ko" ? "EN" : "한"}
+              </button>
               <button
                 onClick={() => router.push("/upgrade")}
                 style={{
                   background: premiumState.isPremium ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.18)",
-                  border: premiumState.isPremium ? "1.5px solid rgba(255,255,255,0.6)" : "none",
+                  border: premiumState.isPremium ? "1.5px solid rgba(255,255,255,0.7)" : "1px solid rgba(255,255,255,0.3)",
                   borderRadius: 50, padding: "5px 12px",
                   fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer",
                 }}
               >
                 {premiumState.isPremium ? "⭐ Pro" : "⭐ Pro"}
               </button>
-              <button onClick={toggle} style={{
-                background: "rgba(255,255,255,0.2)", border: "none",
-                borderRadius: 50, padding: "5px 12px",
-                fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer",
-              }}>
-                {lang === "ko" ? "EN" : "한"}
-              </button>
             </div>
           </div>
+
+          {/* 상단 바 2줄: 스트릭 / 히스토리 (있을 때만) */}
+          {(streak.current > 0 || historyCount > 0) && (
+            <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+              {streak.current > 0 && (
+                <div style={{ background: "rgba(255,255,255,0.18)", borderRadius: 50, padding: "4px 10px", fontSize: 12, fontWeight: 800, color: "white" }}>
+                  🔥 {streak.current}{tr.streakDays}
+                </div>
+              )}
+              {historyCount > 0 && (
+                <div onClick={() => router.push("/history")} style={{ background: "rgba(255,255,255,0.18)", borderRadius: 50, padding: "4px 10px", fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer" }}>
+                  📋 {historyCount}{tr.times}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* 텍스트 + 로봇 가로 배치 */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
