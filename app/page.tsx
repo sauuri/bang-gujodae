@@ -63,9 +63,12 @@ export default function Home() {
       if (h) setHistoryCount(JSON.parse(h).length);
       setShowSplash(true);
       resetIfNewMonth();
-    } catch {}
+      console.log("Home page initialized, premium state:", premiumState);
+    } catch (e) {
+      console.error("Init error:", e);
+    }
     setInitialized(true);
-  }, [resetIfNewMonth]);
+  }, [resetIfNewMonth, premiumState]);
 
   useEffect(() => {
     if (!timeLeft) setTimeLeft(tr.timeOptions[1]);

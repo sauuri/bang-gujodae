@@ -32,13 +32,21 @@ export default function UpgradePage() {
   }
 
   const handleUpgrade = () => {
+    console.log("Upgrading...");
     upgrade();
-    router.push("/");
+    console.log("Upgraded, routing to home");
+    setTimeout(() => {
+      router.push("/");
+    }, 500);
   };
 
   const handleDowngrade = () => {
+    console.log("Downgrading...");
     downgrade();
-    router.push("/");
+    console.log("Downgraded, routing to home");
+    setTimeout(() => {
+      router.push("/");
+    }, 500);
   };
 
   return (
@@ -182,17 +190,16 @@ export default function UpgradePage() {
             {SUBSCRIPTION_PLANS.map((plan) => (
               <button
                 key={plan.id}
-                onClick={async () => {
+                onClick={() => {
+                  console.log("Payment button clicked for plan:", plan.id);
                   setLoading(true);
-                  const success = await openPaymentFlow(plan.id);
-                  if (success) {
-                    // 실제 결제 완료 후 업그레이드
-                    setTimeout(() => {
-                      upgrade();
-                      router.push("/");
-                    }, 1000);
-                  }
-                  setLoading(false);
+                  // 결제 시뮬레이션 (실제 Stripe는 나중에)
+                  setTimeout(() => {
+                    console.log("Payment completed, upgrading...");
+                    upgrade();
+                    setLoading(false);
+                    router.push("/");
+                  }, 800);
                 }}
                 disabled={loading}
                 style={{
