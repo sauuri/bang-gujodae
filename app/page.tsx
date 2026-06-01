@@ -6,6 +6,7 @@ import SplashIntro from "./components/SplashIntro";
 import RobotSprite from "./components/RobotSprite";
 import { hapticLight, hapticMedium } from "./utils/haptics";
 import { useLang } from "./utils/LangContext";
+import { usePremium } from "./utils/PremiumContext";
 import { t } from "./utils/i18n";
 
 async function resizeImage(file: File): Promise<string> {
@@ -36,6 +37,7 @@ export default function Home() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const { lang, toggle } = useLang();
+  const { state: premiumState, useFreeAnalysis, useFocusAnalysis, canFreeAnalysis, canFocusAnalysis, resetIfNewMonth } = usePremium();
   const tr = t(lang);
 
   const [preview, setPreview]         = useState<string | null>(null);
@@ -50,6 +52,8 @@ export default function Home() {
   const [historyCount, setHistoryCount] = useState(0);
   const [showSplash, setShowSplash]   = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [useHighDetail, setUseHighDetail] = useState(false);
 
   useEffect(() => {
     try {
@@ -58,9 +62,10 @@ export default function Home() {
       const h = localStorage.getItem("bangHistory");
       if (h) setHistoryCount(JSON.parse(h).length);
       setShowSplash(true);
+      resetIfNewMonth();
     } catch {}
     setInitialized(true);
-  }, []);
+  }, [resetIfNewMonth]);
 
   useEffect(() => {
     if (!timeLeft) setTimeLeft(tr.timeOptions[1]);
@@ -92,13 +97,33 @@ export default function Home() {
     hapticMedium();
     setLoading(true);
     setLoadingMsg(tr.loadingMsgs[0]);
+    // 월 리셋 체크
+    resetIfNewMonth();
+
+    // 무료 분석 횟수 체크
+    if (!premiumState.isPremium && !canFreeAnalysis()) {
+      setLoading(false);
+      setShowUpgradeModal(true);
+      return;
+    }
+
     try {
+      const detail = useHighDetail && premiumState.isPremium ? "high" : "low";
+
       const res = await fetch("/api/rescue", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: imageB64, timeLeft, energy, lang }),
+        body: JSON.stringify({ imageBase64: imageB64, timeLeft, energy, lang, detail }),
       });
       const data = await res.json();
+
+      // 횟수 차감
+      if (premiumState.isPremium && useHighDetail && canFocusAnalysis()) {
+        useFocusAnalysis();
+      } else {
+        useFreeAnalysis();
+      }
+
       localStorage.setItem("rescueResult", JSON.stringify({ ...data, imageB64 }));
       router.push("/result");
     } catch {
@@ -203,6 +228,26 @@ export default function Home() {
                 }}>
                   📋 {historyCount}{tr.times}
                 </div>
+              )}
+              {premiumState.isPremium ? (
+                <div style={{
+                  background: "rgba(255,255,255,0.3)",
+                  borderRadius: 50, padding: "5px 12px",
+                  fontSize: 12, fontWeight: 800, color: "white",
+                }}>
+                  ⭐ Pro
+                </div>
+              ) : (
+                <button
+                  onClick={() => router.push("/upgrade")}
+                  style={{
+                    background: "rgba(255,255,255,0.2)", border: "none",
+                    borderRadius: 50, padding: "5px 12px",
+                    fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer",
+                  }}
+                >
+                  ⭐ Pro
+                </button>
               )}
               <button onClick={toggle} style={{
                 background: "rgba(255,255,255,0.2)", border: "none",
@@ -328,7 +373,7 @@ export default function Home() {
               {tr.timeLabel}
             </div>
             <div className="time-grid">
-              {tr.timeOptions.map((opt) => (
+              {tr.timeOptions.map((opt: string) => (
                 <button
                   key={opt}
                   className={`time-btn${timeLeft === opt ? " active" : ""}`}
@@ -352,6 +397,107 @@ export default function Home() {
 
         </div>
       </main>
+
+      {/* 업그레이드 모달 */}
+      {showUpgradeModal && (
+        <div style={{
+          position: "fixed", inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex", alignItems: "flex-end",
+          zIndex: 100,
+        }}>
+          <div style={{
+            width: "100%",
+            background: "white",
+            borderRadius: "20px 20px 0 0",
+            padding: "2rem 1.5rem 2.5rem",
+            maxHeight: "80vh",
+            overflowY: "auto",
+          }}>
+            <button
+              onClick={() => setShowUpgradeModal(false)}
+              style={{
+                float: "right",
+                background: "#f0f0f0",
+                border: "none",
+                borderRadius: "50%",
+                width: 32,
+                height: 32,
+                fontSize: 18,
+                cursor: "pointer",
+              }}
+            >
+              ✕
+            </button>
+
+            <h2 style={{ fontSize: "1.3rem", marginBottom: "1rem", color: "#2D5A2D" }}>
+              {lang === "ko" ? "무료 분석을 다 썼어요" : "Free analyses used up"}
+            </h2>
+
+            <div
+              style={{
+                background: "#FFF3E0",
+                border: "1px solid #FFB74D",
+                borderRadius: "0.8rem",
+                padding: "1rem",
+                marginBottom: "1.5rem",
+                fontSize: "0.85rem",
+                lineHeight: 1.6,
+                color: "#E65100",
+              }}
+            >
+              <p style={{ margin: 0, marginBottom: "0.5rem", fontWeight: "bold" }}>
+                {lang === "ko" ? "💡 왜 유료인가요?" : "💡 Why paid?"}
+              </p>
+              <p style={{ margin: 0 }}>
+                {lang === "ko"
+                  ? "AI 이미지 분석에는 실시간 비용이 발생합니다. 더 정확한 분석을 제공하기 위해 유료로 운영하고 있습니다."
+                  : "AI image analysis incurs real costs. We operate with a premium model to provide accurate analysis."}
+              </p>
+            </div>
+
+            <p style={{ color: "#666", marginBottom: "1.5rem" }}>
+              {lang === "ko"
+                ? "Pro로 업그레이드하면 무제한 분석이 가능합니다"
+                : "Upgrade to Pro for unlimited analyses"}
+            </p>
+
+            <button
+              onClick={() => {
+                setShowUpgradeModal(false);
+                router.push("/upgrade");
+              }}
+              style={{
+                width: "100%",
+                padding: "1rem",
+                background: "linear-gradient(135deg, #84D98F 0%, #5DC86D 100%)",
+                color: "white",
+                border: "none",
+                borderRadius: "0.8rem",
+                fontSize: "1.1rem",
+                fontWeight: "bold",
+                cursor: "pointer",
+                marginBottom: "0.5rem",
+              }}
+            >
+              {tr.upgradeBtn}
+            </button>
+            <button
+              onClick={() => setShowUpgradeModal(false)}
+              style={{
+                width: "100%",
+                padding: "1rem",
+                background: "#f0f0f0",
+                border: "none",
+                borderRadius: "0.8rem",
+                cursor: "pointer",
+              }}
+            >
+              {tr.cancel}
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

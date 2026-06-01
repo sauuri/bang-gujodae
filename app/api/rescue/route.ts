@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: NextRequest) {
-  const { imageBase64, timeLeft, energy, lang = "ko" } = await req.json();
+  const { imageBase64, timeLeft, energy, lang = "ko", detail = "low" } = await req.json();
 
   const isEn = lang === "en";
   const stepCount = energy <= 3 ? (isEn ? "1~2 steps" : "1~2개") : energy <= 6 ? (isEn ? "3~4 steps" : "3~4개") : (isEn ? "4~5 steps" : "4~5개");
@@ -76,7 +76,7 @@ steps 개수: ${stepCount} (에너지와 시간 ${timeLeft} 안에 실제로 끝
       {
         role: "user",
         content: [
-          { type: "image_url", image_url: { url: imageBase64, detail: "low" } },
+          { type: "image_url", image_url: { url: imageBase64, detail: detail as "low" | "high" } },
           { type: "text", text: userPrompt },
         ],
       },

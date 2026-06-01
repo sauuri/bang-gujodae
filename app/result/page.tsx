@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { hapticLight, hapticMedium, hapticHeavy, hapticSuccess } from "../utils/haptics";
+import { useLang } from "../utils/LangContext";
+import { usePremium } from "../utils/PremiumContext";
+import { t } from "../utils/i18n";
 
 function playSfxCompare() {
   try {
@@ -51,8 +54,6 @@ import CleaningEnding from "../components/CleaningEnding";
 import AROverlay from "../components/AROverlay";
 import { isARSupported, openNativeAR } from "../utils/arBridge";
 import { bridgeSetTimer, bridgeClearTimer } from "../utils/timerBridge";
-import { useLang } from "../utils/LangContext";
-import { t } from "../utils/i18n";
 
 function parseDurationSecs(dur: string): number {
   const h = dur.match(/(\d+)\s*시간/);
@@ -163,6 +164,7 @@ function MessScoreRing({ score, scoreLabel, scoreSub, messLabel }: { score: numb
 export default function ResultPage() {
   const router = useRouter();
   const { lang, toggle: toggleLang } = useLang();
+  const { state: premiumState, useStreakShield } = usePremium();
   const tr = t(lang);
   const [result, setResult] = useState<RescueResult | null>(null);
   const [checked, setChecked] = useState<boolean[]>([]);
@@ -177,6 +179,8 @@ export default function ResultPage() {
   const [endingTriggered, setEndingTriggered] = useState(false);
   const [doneFlash, setDoneFlash] = useState(false);
   const [timer, setTimer] = useState<TimerState | null>(null);
+  const [focusMode, setFocusMode] = useState(false);
+  const [showShieldModal, setShowShieldModal] = useState(false);
   const prevAllDoneRef = useRef(false);
   const afterInputRef = useRef<HTMLInputElement>(null);
 
@@ -773,6 +777,26 @@ export default function ResultPage() {
           </div>
         )}
 
+        {!anyDone && premiumState.isPremium && premiumState.streakShields > 0 && (
+          <button
+            onClick={() => setShowShieldModal(true)}
+            style={{
+              width: "100%",
+              padding: "14px",
+              borderRadius: 14,
+              border: "1.5px solid #FFA500",
+              background: "#FFF8F0",
+              color: "#FF8C00",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+              marginBottom: 10,
+            }}
+          >
+            🛡️ {lang === "ko" ? "오늘 못 했어요" : "Couldn't do it today"}
+          </button>
+        )}
+
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           <button onClick={() => router.push("/history")}
             style={{ flex: 1, padding: "14px", borderRadius: 14, border: "1.5px solid #e5e7eb", background: "#fff", color: "#555", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
@@ -795,6 +819,68 @@ export default function ResultPage() {
 
       </div>
     </main>
+
+    {/* 스트릭 보호권 모달 */}
+    {showShieldModal && (
+      <div style={{
+        position: "fixed", inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex", alignItems: "flex-end",
+        zIndex: 100,
+      }}>
+        <div style={{
+          width: "100%",
+          background: "white",
+          borderRadius: "20px 20px 0 0",
+          padding: "2rem 1.5rem",
+        }}>
+          <h2 style={{ fontSize: "1.3rem", marginBottom: "1rem", color: "#2D5A2D" }}>
+            🛡️ {lang === "ko" ? "스트릭 보호권 사용" : "Use Streak Shield"}
+          </h2>
+          <p style={{ color: "#666", marginBottom: "1.5rem" }}>
+            {lang === "ko"
+              ? `오늘 정리를 못 해도 스트릭을 유지할 수 있어요.\n남은 보호권: ${premiumState.streakShields}개`
+              : `Keep your streak even if you can't clean today.\nShields left: ${premiumState.streakShields}`}
+          </p>
+          <button
+            onClick={() => {
+              if (useStreakShield()) {
+                updateStreak();
+                setSaved(true);
+                setShowShieldModal(false);
+              }
+            }}
+            style={{
+              width: "100%",
+              padding: "1rem",
+              background: "linear-gradient(135deg, #84D98F 0%, #5DC86D 100%)",
+              color: "white",
+              border: "none",
+              borderRadius: "0.8rem",
+              fontSize: "1.1rem",
+              fontWeight: "bold",
+              cursor: "pointer",
+              marginBottom: "0.5rem",
+            }}
+          >
+            {lang === "ko" ? "보호권 사용" : "Use Shield"}
+          </button>
+          <button
+            onClick={() => setShowShieldModal(false)}
+            style={{
+              width: "100%",
+              padding: "1rem",
+              background: "#f0f0f0",
+              border: "none",
+              borderRadius: "0.8rem",
+              cursor: "pointer",
+            }}
+          >
+            {tr.cancel}
+          </button>
+        </div>
+      </div>
+    )}
     </>
   );
 }

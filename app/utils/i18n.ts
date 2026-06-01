@@ -1,6 +1,11 @@
 export type Lang = "ko" | "en";
 
-export const translations = {
+interface TranslationStrings {
+  premiumFeatures: string[];
+  [key: string]: any;
+}
+
+export const translations: { ko: TranslationStrings; en: TranslationStrings } = {
   ko: {
     // 공통
     appName: "방구조대",
@@ -87,6 +92,28 @@ export const translations = {
       `방구조대가 내 방을 분석했어요!\n\n어지러움 점수: ${score}점 (${label})\n${summary}\n\n정리 순서 ${steps}단계 뽑기 완료 🧹`,
     shareCompareText: (score: number, changes: string[], praise: string) =>
       `방구조대가 청소 전후를 비교했어요!\n\n변화 점수: ${score}/10\n${changes.map(c => `✓ ${c}`).join("\n")}\n\n${praise}\n\nhttps://bang-gujodae.vercel.app`,
+
+    // 프리미엄
+    premiumBadge: "⭐ Pro",
+    upgradeBtn: "Pro 시작하기",
+    freeLeft: (n: number) => `남은 무료 분석: ${n}회`,
+    focusMode: "포커스 모드",
+    focusModeOn: "포커스 모드 ON",
+    streakShield: "🛡️ 오늘 못 했어요",
+    useShield: "보호권 사용",
+    shieldsLeft: (n: number) => `남은 보호권: ${n}개`,
+    focusHint: "지금은 이것만 해요",
+    focusNext: "완료!",
+    upgradeCta: "프리미엄으로 업그레이드하세요",
+    upgradeTitle: "프리미엄으로 더 쉽게 시작하세요",
+    hiDetailAnalysis: "고정밀 분석",
+    hiDetailLimit: "프리미엄 사용자만 사용 가능",
+    premiumFeatures: [
+      "한 단계씩 포커스 모드",
+      "복잡한 방 고정밀 분석",
+      "Before/After 자동 비교",
+      "스트릭 보호권",
+    ],
 
     // 히스토리
     historyTitle: "📋 내 방 구조 기록",
@@ -199,6 +226,28 @@ export const translations = {
       `RoomRescue analyzed my room!\n\nMess Score: ${score} (${label})\n${summary}\n\n${steps}-step cleaning plan ready 🧹`,
     shareCompareText: (score: number, changes: string[], praise: string) =>
       `RoomRescue compared before & after!\n\nChange Score: ${score}/10\n${changes.map(c => `✓ ${c}`).join("\n")}\n\n${praise}\n\nhttps://bang-gujodae.vercel.app`,
+
+    // Premium
+    premiumBadge: "⭐ Pro",
+    upgradeBtn: "Start Pro",
+    freeLeft: (n: number) => `Free analyses left: ${n}`,
+    focusMode: "Focus Mode",
+    focusModeOn: "Focus Mode ON",
+    streakShield: "🛡️ Couldn't do it today",
+    useShield: "Use Shield",
+    shieldsLeft: (n: number) => `Shields left: ${n}`,
+    focusHint: "Do just this one",
+    focusNext: "Done!",
+    upgradeCta: "Upgrade to Pro",
+    upgradeTitle: "Start easier with Pro",
+    hiDetailAnalysis: "High-Precision Analysis",
+    hiDetailLimit: "Pro users only",
+    premiumFeatures: [
+      "Focus Mode — one step at a time",
+      "High-precision analysis for complex rooms",
+      "Before/After auto-comparison",
+      "Streak Protection Shield",
+    ],
 
     historyTitle: "📋 My Rescue History",
     historyBack: "← Back",
