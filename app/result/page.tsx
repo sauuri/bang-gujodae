@@ -48,6 +48,7 @@ function playSfxCheck(checked: boolean) {
 }
 import RobotSprite from "../components/RobotSprite";
 import CleaningEnding from "../components/CleaningEnding";
+import AROverlay from "../components/AROverlay";
 import { bridgeSetTimer, bridgeClearTimer } from "../utils/timerBridge";
 import { useLang } from "../utils/LangContext";
 import { t } from "../utils/i18n";
@@ -170,6 +171,7 @@ export default function ResultPage() {
   const [saved, setSaved] = useState(false);
   const [streak, setStreak] = useState({ current: 0, best: 0 });
   const [showEnding, setShowEnding] = useState(false);
+  const [showAR, setShowAR] = useState(false);
   const [endingTriggered, setEndingTriggered] = useState(false);
   const [doneFlash, setDoneFlash] = useState(false);
   const [timer, setTimer] = useState<TimerState | null>(null);
@@ -440,6 +442,9 @@ export default function ResultPage() {
         onClose={() => setShowEnding(false)}
       />
     )}
+    {showAR && result && (
+      <AROverlay steps={result.steps} onClose={() => setShowAR(false)} />
+    )}
 
 
     {/* 완료 파티클 */}
@@ -521,9 +526,22 @@ export default function ResultPage() {
           <div style={{ padding: "16px 20px 0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <span style={{ fontSize: 13, fontWeight: 800, color: "#1a2744" }}>{tr.stepsTitle}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? "#5A9E30" : "#aaa" }}>
-                {allDone ? tr.allDone : `${checkedCount}/${result.steps.length}`}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                  onClick={() => { hapticMedium(); setShowAR(true); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 4,
+                    padding: "5px 12px", borderRadius: 20, border: "none", cursor: "pointer",
+                    background: "linear-gradient(135deg, #1a2744, #2d4a8a)",
+                    color: "white", fontSize: 11, fontWeight: 800,
+                  }}
+                >
+                  📸 AR
+                </button>
+                <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? "#5A9E30" : "#aaa" }}>
+                  {allDone ? tr.allDone : `${checkedCount}/${result.steps.length}`}
+                </span>
+              </div>
             </div>
             {anyDone && (
               <div style={{ height: 5, background: "#DBEFC7", borderRadius: 4, marginBottom: 12 }}>
