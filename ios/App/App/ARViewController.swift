@@ -1,8 +1,6 @@
 import ARKit
 import SceneKit
 import UIKit
-import Vision
-import AVFoundation
 
 struct ARStep {
     let order: Int
@@ -19,13 +17,8 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
     private var checkedIndices = Set<Int>()
     private var stepNodes = [Int: SCNNode]()
     private var placedSteps = false
-
     private var progressLabel: UILabel!
     private var scanLabel: UILabel!
-
-    private var objectOverlayNodes = [SCNNode]()
-    private var lastObjectDetectionTime: TimeInterval = 0
-    private let objectDetectionInterval: TimeInterval = 0.5
 
     // MARK: - Lifecycle
 
@@ -51,14 +44,6 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         sceneView.session.pause()
     }
 
-    func renderer(_ renderer: SCNSceneRenderer, didRenderScene scene: SCNScene, atTime time: TimeInterval) {
-        let now = Date().timeIntervalSince1970
-        if now - lastObjectDetectionTime > objectDetectionInterval {
-            lastObjectDetectionTime = now
-            detectObjectsInARFrame()
-        }
-    }
-
     // MARK: - Setup
 
     private func setupARView() {
@@ -75,7 +60,6 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
     private func setupUI() {
         let safeTop = view.safeAreaInsets.top + 16
 
-        // Close button
         let closeBtn = UIButton(type: .custom)
         closeBtn.setTitle("✕", for: .normal)
         closeBtn.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
@@ -85,7 +69,6 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         closeBtn.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
         view.addSubview(closeBtn)
 
-        // Progress pill
         progressLabel = UILabel()
         progressLabel.textColor = .white
         progressLabel.font = .systemFont(ofSize: 13, weight: .bold)
@@ -97,7 +80,6 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         view.addSubview(progressLabel)
         updateProgress()
 
-        // Scan hint
         scanLabel = UILabel()
         scanLabel.text = "주변을 천천히 스캔하세요 📷"
         scanLabel.textColor = .white
@@ -125,9 +107,11 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         let camPos  = SIMD3<Float>(t.columns.3.x,  t.columns.3.y,  t.columns.3.z)
         let forward = SIMD3<Float>(-t.columns.2.x, -t.columns.2.y, -t.columns.2.z)
         let right   = SIMD3<Float>(t.columns.0.x,   t.columns.0.y,  t.columns.0.z)
+        let up      = SIMD3<Float>(t.columns.1.x,   t.columns.1.y,  t.columns.1.z)
 
+        // Step 카드들
         let count = steps.count
-        let spread: Float = .pi / 4   // 45° total fan
+        let spread: Float = .pi / 4
         let dist: Float   = 1.1
 
         for (i, step) in steps.enumerated() {
@@ -159,6 +143,52 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
                 SCNTransaction.commit()
             }
         }
+
+        // 배경 반투명 오버레이
+        addBackgroundOverlays(camPos: camPos, forward: forward, right: right, up: up)
+    }
+
+    private func addBackgroundOverlays(camPos: SIMD3<Float>, forward: SIMD3<Float>, right: SIMD3<Float>, up: SIMD3<Float>) {
+        let overlayPositions: [(x: Float, y: Float, z: Float, colorIdx: Int)] = [
+            (0.3, 0.2, 0.8, 0),
+            (-0.4, 0.1, 0.7, 1),
+            (0.0, -0.2, 0.9, 2),
+            (0.5, -0.1, 0.6, 3),
+        ]
+
+        for (i, pos) in overlayPositions.enumerated() {
+            let worldPos = camPos + forward * pos.z + right * pos.x + up * pos.y
+            let overlay = makeBackgroundOverlay(colorIdx: pos.colorIdx)
+            overlay.position = SCNVector3(worldPos.x, worldPos.y, worldPos.z)
+            overlay.scale = SCNVector3(0.35, 0.35, 0.35)
+
+            let billboard = SCNBillboardConstraint()
+            billboard.freeAxes = .Y
+            overlay.constraints = [billboard]
+
+            sceneView.scene.rootNode.addChildNode(overlay)
+        }
+    }
+
+    private func makeBackgroundOverlay(colorIdx: Int) -> SCNNode {
+        let plane = SCNPlane(width: 0.3, height: 0.3)
+        plane.cornerRadius = 0.02
+
+        let colors: [UIColor] = [
+            UIColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 0.4),
+            UIColor(red: 0.2, green: 1.0, blue: 0.2, alpha: 0.4),
+            UIColor(red: 0.2, green: 0.2, blue: 1.0, alpha: 0.4),
+            UIColor(red: 1.0, green: 1.0, blue: 0.2, alpha: 0.4),
+        ]
+        let color = colors[colorIdx % colors.count]
+
+        plane.firstMaterial?.diffuse.contents = color
+        plane.firstMaterial?.isDoubleSided = true
+        plane.firstMaterial?.lightingModel = .constant
+
+        let node = SCNNode(geometry: plane)
+        node.name = "bg_overlay_\(colorIdx)"
+        return node
     }
 
     // MARK: - Node Creation
@@ -179,14 +209,12 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         return UIGraphicsImageRenderer(size: size).image { ctx in
             let cg = ctx.cgContext
 
-            // Background
             (checked
                 ? UIColor(red: 0.18, green: 0.62, blue: 0.14, alpha: 0.96)
                 : UIColor(red: 0.06, green: 0.11, blue: 0.22, alpha: 0.96)
             ).setFill()
             UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 36).fill()
 
-            // Border
             cg.setStrokeColor((checked
                 ? UIColor(red: 0.3, green: 0.85, blue: 0.25, alpha: 1)
                 : UIColor(red: 0.3, green: 0.55, blue: 1.0, alpha: 0.45)
@@ -194,7 +222,6 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
             cg.setLineWidth(3)
             UIBezierPath(roundedRect: CGRect(x: 2, y: 2, width: size.width-4, height: size.height-4), cornerRadius: 34).stroke()
 
-            // Badge
             let badgeRect = CGRect(x: 22, y: 22, width: 68, height: 68)
             (checked
                 ? UIColor(red: 0.3, green: 0.85, blue: 0.25, alpha: 1)
@@ -212,7 +239,6 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
                 at: CGPoint(x: badgeRect.midX - bs.width/2, y: badgeRect.midY - bs.height/2),
                 withAttributes: badgeAttrs)
 
-            // Duration top-right
             let durAttrs: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 22, weight: .semibold),
                 .foregroundColor: UIColor(red: 0.55, green: 0.82, blue: 1.0, alpha: 1)
@@ -221,21 +247,18 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
             let ds = (durTxt as NSString).size(withAttributes: durAttrs)
             (durTxt as NSString).draw(at: CGPoint(x: size.width - ds.width - 22, y: 30), withAttributes: durAttrs)
 
-            // Title
             let titleAttrs: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 28, weight: .black),
                 .foregroundColor: UIColor.white
             ]
             (step.title as NSString).draw(in: CGRect(x: 106, y: 26, width: size.width - 230, height: 90), withAttributes: titleAttrs)
 
-            // Reason
             let reasonAttrs: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 20, weight: .regular),
                 .foregroundColor: UIColor(white: 1, alpha: 0.65)
             ]
             (step.reason as NSString).draw(in: CGRect(x: 22, y: 112, width: size.width - 44, height: 120), withAttributes: reasonAttrs)
 
-            // Tap hint
             if !checked {
                 let hintAttrs: [NSAttributedString.Key: Any] = [
                     .font: UIFont.systemFont(ofSize: 17, weight: .medium),
@@ -277,12 +300,10 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         let step = steps[index]
         let checked = checkedIndices.contains(index)
 
-        // Bounce scale animation
         SCNTransaction.begin()
         SCNTransaction.animationDuration = 0.12
         node.scale = SCNVector3(1.12, 1.12, 1.12)
         SCNTransaction.completionBlock = {
-            // Update texture
             if let plane = node.geometry as? SCNPlane {
                 plane.firstMaterial?.diffuse.contents = self.renderCard(step: step, checked: checked)
             }
@@ -357,123 +378,5 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         dismiss(animated: true) { [weak self] in
             self?.onClose?(self?.checkedIndices.count ?? 0)
         }
-    }
-
-    // MARK: - Object Detection
-
-    private func detectObjectsInARFrame() {
-        guard let frame = sceneView.session.currentFrame else { return }
-        let pixelBuffer = frame.capturedImage
-
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let detections = self?.analyzeImageBrightness(pixelBuffer) ?? []
-            DispatchQueue.main.async {
-                self?.processDetectedRegions(detections, frame: frame)
-            }
-        }
-    }
-
-    private func analyzeImageBrightness(_ pixelBuffer: CVPixelBuffer) -> [(CGRect, Float)] {
-        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
-        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
-
-        let width = CVPixelBufferGetWidth(pixelBuffer)
-        let height = CVPixelBufferGetHeight(pixelBuffer)
-        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
-        let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer)!
-
-        let gridSize = 16
-        var detections: [(CGRect, Float)] = []
-
-        for gy in 0..<gridSize {
-            for gx in 0..<gridSize {
-                let cellW = width / gridSize
-                let cellH = height / gridSize
-                let y1 = gy * cellH
-                let y2 = min(y1 + cellH, height)
-                let x1 = gx * cellW
-                let x2 = min(x1 + cellW, width)
-
-                var brightness: [UInt8] = []
-                for y in y1..<y2 {
-                    let row = baseAddress.advanced(by: y * bytesPerRow)
-                    for x in x1..<x2 {
-                        let pixel = row.advanced(by: x * 4).assumingMemoryBound(to: UInt8.self)
-                        let r = UInt16(pixel[0])
-                        let g = UInt16(pixel[1])
-                        let b = UInt16(pixel[2])
-                        let lum = UInt8((r * 299 + g * 587 + b * 114) / 1000)
-                        brightness.append(lum)
-                    }
-                }
-
-                if brightness.count > 0 {
-                    let mean = Float(brightness.reduce(0, +)) / Float(brightness.count)
-                    let variance = brightness.map { (Float($0) - mean) * (Float($0) - mean) }
-                        .reduce(0, +) / Float(brightness.count)
-                    let stdDev = sqrt(variance)
-
-                    if stdDev > 20 {
-                        let rect = CGRect(x: CGFloat(x1), y: CGFloat(y1), width: CGFloat(cellW), height: CGFloat(cellH))
-                        detections.append((rect, stdDev))
-                    }
-                }
-            }
-        }
-
-        return detections.sorted { $0.1 > $1.1 }.prefix(6).map { ($0.0, $0.1) }
-    }
-
-    private func processDetectedRegions(_ detections: [(CGRect, Float)], frame: ARFrame) {
-        objectOverlayNodes.forEach { $0.removeFromParentNode() }
-        objectOverlayNodes.removeAll()
-
-        let cameraTransform = frame.camera.transform
-        let cameraPos = SIMD3<Float>(cameraTransform.columns.3.x, cameraTransform.columns.3.y, cameraTransform.columns.3.z)
-        let forward = SIMD3<Float>(-cameraTransform.columns.2.x, -cameraTransform.columns.2.y, -cameraTransform.columns.2.z)
-        let right = SIMD3<Float>(cameraTransform.columns.0.x, cameraTransform.columns.0.y, cameraTransform.columns.0.z)
-        let up = SIMD3<Float>(cameraTransform.columns.1.x, cameraTransform.columns.1.y, cameraTransform.columns.1.z)
-
-        let imageWidth = Float(CVPixelBufferGetWidth(frame.capturedImage))
-        let imageHeight = Float(CVPixelBufferGetHeight(frame.capturedImage))
-
-        for (i, detection) in detections.enumerated() {
-            let rect = detection.0
-            let normX = Float(rect.midX / CGFloat(imageWidth > 0 ? imageWidth : 1))
-            let normY = Float(rect.midY / CGFloat(imageHeight > 0 ? imageHeight : 1))
-
-            let offsetX = (normX - 0.5) * 1.2
-            let offsetY = (0.5 - normY) * 0.9
-
-            let pos = cameraPos + forward * 0.55 + right * offsetX + up * offsetY
-
-            let overlayNode = makeTransparentOverlay(index: i)
-            overlayNode.position = SCNVector3(pos.x, pos.y, pos.z)
-            overlayNode.scale = SCNVector3(0.35, 0.35, 0.35)
-
-            sceneView.scene.rootNode.addChildNode(overlayNode)
-            objectOverlayNodes.append(overlayNode)
-        }
-    }
-
-    private func makeTransparentOverlay(index: Int) -> SCNNode {
-        let plane = SCNPlane(width: 0.25, height: 0.25)
-        plane.cornerRadius = 0.015
-
-        let colors: [UIColor] = [
-            UIColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 0.35),
-            UIColor(red: 0.2, green: 1.0, blue: 0.2, alpha: 0.35),
-            UIColor(red: 0.2, green: 0.2, blue: 1.0, alpha: 0.35),
-            UIColor(red: 1.0, green: 1.0, blue: 0.2, alpha: 0.35),
-        ]
-        let color = colors[index % colors.count]
-
-        plane.firstMaterial?.diffuse.contents = color
-        plane.firstMaterial?.isDoubleSided = true
-        plane.firstMaterial?.lightingModel = .constant
-
-        let node = SCNNode(geometry: plane)
-        node.name = "overlay_\(index)"
-        return node
     }
 }
