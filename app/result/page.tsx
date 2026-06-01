@@ -536,7 +536,7 @@ export default function ResultPage() {
                     color: "white", fontSize: 11, fontWeight: 800,
                   }}
                 >
-                  📸 AR
+                  📷 카메라로 따라하기
                 </button>
                 <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? "#5A9E30" : "#aaa" }}>
                   {allDone ? tr.allDone : `${checkedCount}/${result.steps.length}`}
