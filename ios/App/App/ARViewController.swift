@@ -365,39 +365,91 @@ class ARViewController: UIViewController, ARSCNViewDelegate {
         guard let frame = sceneView.session.currentFrame else { return }
         let pixelBuffer = frame.capturedImage
 
-        let request = VNDetectRectanglesRequest { [weak self] req, _ in
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let detections = self?.analyzeImageBrightness(pixelBuffer) ?? []
             DispatchQueue.main.async {
-                self?.processDetectedRectangles(req.results as? [VNRectangleObservation] ?? [], frame: frame)
+                self?.processDetectedRegions(detections, frame: frame)
             }
         }
-        request.minimumAspectRatio = 0.3
-        request.maximumAspectRatio = 3.0
-        request.quadratureTolerance = 30
-
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
-        try? handler.perform([request])
     }
 
-    private func processDetectedRectangles(_ observations: [VNRectangleObservation], frame: ARFrame) {
-        // 기존 오버레이 제거
+    private func analyzeImageBrightness(_ pixelBuffer: CVPixelBuffer) -> [(CGRect, Float)] {
+        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
+        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
+
+        let width = CVPixelBufferGetWidth(pixelBuffer)
+        let height = CVPixelBufferGetHeight(pixelBuffer)
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+        let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer)!
+
+        let gridSize = 16
+        var detections: [(CGRect, Float)] = []
+
+        for gy in 0..<gridSize {
+            for gx in 0..<gridSize {
+                let cellW = width / gridSize
+                let cellH = height / gridSize
+                let y1 = gy * cellH
+                let y2 = min(y1 + cellH, height)
+                let x1 = gx * cellW
+                let x2 = min(x1 + cellW, width)
+
+                var brightness: [UInt8] = []
+                for y in y1..<y2 {
+                    let row = baseAddress.advanced(by: y * bytesPerRow)
+                    for x in x1..<x2 {
+                        let pixel = row.advanced(by: x * 4).assumingMemoryBound(to: UInt8.self)
+                        let r = UInt16(pixel[0])
+                        let g = UInt16(pixel[1])
+                        let b = UInt16(pixel[2])
+                        let lum = UInt8((r * 299 + g * 587 + b * 114) / 1000)
+                        brightness.append(lum)
+                    }
+                }
+
+                if brightness.count > 0 {
+                    let mean = Float(brightness.reduce(0, +)) / Float(brightness.count)
+                    let variance = brightness.map { (Float($0) - mean) * (Float($0) - mean) }
+                        .reduce(0, +) / Float(brightness.count)
+                    let stdDev = sqrt(variance)
+
+                    if stdDev > 20 {
+                        let rect = CGRect(x: CGFloat(x1), y: CGFloat(y1), width: CGFloat(cellW), height: CGFloat(cellH))
+                        detections.append((rect, stdDev))
+                    }
+                }
+            }
+        }
+
+        return detections.sorted { $0.1 > $1.1 }.prefix(6).map { ($0.0, $0.1) }
+    }
+
+    private func processDetectedRegions(_ detections: [(CGRect, Float)], frame: ARFrame) {
         objectOverlayNodes.forEach { $0.removeFromParentNode() }
         objectOverlayNodes.removeAll()
 
         let cameraTransform = frame.camera.transform
         let cameraPos = SIMD3<Float>(cameraTransform.columns.3.x, cameraTransform.columns.3.y, cameraTransform.columns.3.z)
         let forward = SIMD3<Float>(-cameraTransform.columns.2.x, -cameraTransform.columns.2.y, -cameraTransform.columns.2.z)
+        let right = SIMD3<Float>(cameraTransform.columns.0.x, cameraTransform.columns.0.y, cameraTransform.columns.0.z)
+        let up = SIMD3<Float>(cameraTransform.columns.1.x, cameraTransform.columns.1.y, cameraTransform.columns.1.z)
 
-        for (i, obs) in observations.enumerated() {
-            let bbox = obs.boundingBox
-            // 화면 중앙 기준 오프셋 계산
-            let screenX = Float(bbox.midX - 0.5) * 0.8
-            let screenY = Float(0.5 - bbox.midY) * 0.6
+        let imageWidth = Float(CVPixelBufferGetWidth(frame.capturedImage))
+        let imageHeight = Float(CVPixelBufferGetHeight(frame.capturedImage))
 
-            let pos = cameraPos + forward * 0.6 + SIMD3<Float>(screenX, screenY, 0)
+        for (i, detection) in detections.enumerated() {
+            let rect = detection.0
+            let normX = Float(rect.midX / CGFloat(imageWidth > 0 ? imageWidth : 1))
+            let normY = Float(rect.midY / CGFloat(imageHeight > 0 ? imageHeight : 1))
+
+            let offsetX = (normX - 0.5) * 1.2
+            let offsetY = (0.5 - normY) * 0.9
+
+            let pos = cameraPos + forward * 0.55 + right * offsetX + up * offsetY
 
             let overlayNode = makeTransparentOverlay(index: i)
             overlayNode.position = SCNVector3(pos.x, pos.y, pos.z)
-            overlayNode.scale = SCNVector3(0.5, 0.5, 0.5)
+            overlayNode.scale = SCNVector3(0.35, 0.35, 0.35)
 
             sceneView.scene.rootNode.addChildNode(overlayNode)
             objectOverlayNodes.append(overlayNode)
