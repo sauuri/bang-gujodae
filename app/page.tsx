@@ -37,7 +37,7 @@ export default function Home() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const { lang, toggle } = useLang();
-  const { state: premiumState, useFreeAnalysis, useFocusAnalysis, canFreeAnalysis, canFocusAnalysis, resetIfNewMonth } = usePremium();
+  const { state: premiumState, canAnalyze, shouldShowModal, useAnalysis } = usePremium();
   const tr = t(lang);
 
   const [preview, setPreview]         = useState<string | null>(null);
@@ -53,7 +53,6 @@ export default function Home() {
   const [showSplash, setShowSplash]   = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [useHighDetail, setUseHighDetail] = useState(false);
 
   useEffect(() => {
     try {
@@ -62,13 +61,9 @@ export default function Home() {
       const h = localStorage.getItem("bangHistory");
       if (h) setHistoryCount(JSON.parse(h).length);
       setShowSplash(true);
-      resetIfNewMonth();
-      console.log("Home page initialized, premium state:", premiumState);
-    } catch (e) {
-      console.error("Init error:", e);
-    }
+    } catch {}
     setInitialized(true);
-  }, [resetIfNewMonth, premiumState]);
+  }, []);
 
   useEffect(() => {
     if (!timeLeft) setTimeLeft(tr.timeOptions[1]);
@@ -78,13 +73,8 @@ export default function Home() {
     if (!loading) return;
     let i = 0;
     const msgs = tr.loadingMsgs;
-    const iv = setInterval(() => {
-      i = (i + 1) % msgs.length;
-      setLoadingMsg(msgs[i]);
-    }, 1800);
-    const sv = setInterval(() => {
-      setSweepDir(d => d === "walkRight" ? "walkLeft" : "walkRight");
-    }, 900);
+    const iv = setInterval(() => { i = (i + 1) % msgs.length; setLoadingMsg(msgs[i]); }, 1800);
+    const sv = setInterval(() => { setSweepDir(d => d === "walkRight" ? "walkLeft" : "walkRight"); }, 900);
     return () => { clearInterval(iv); clearInterval(sv); };
   }, [loading]);
 
@@ -98,43 +88,30 @@ export default function Home() {
   async function handleSubmit() {
     if (!imageB64) return;
     hapticMedium();
-    setLoading(true);
-    setLoadingMsg(tr.loadingMsgs[0]);
-    // 월 리셋 체크
-    resetIfNewMonth();
 
-    // 무료 분석 횟수 체크 (7회 후 모달)
-    if (!premiumState.isPremium && premiumState.freeAnalysisCount >= 7) {
-      setLoading(false);
-      setShowUpgradeModal(true);
-      return;
-    }
-
-    // 10회 이상은 완전 차단
-    if (!premiumState.isPremium && !canFreeAnalysis()) {
-      setLoading(false);
-      alert(lang === "ko" ? "무료 분석을 모두 사용했습니다.\nPro로 업그레이드해주세요." : "Free analyses used up.\nPlease upgrade to Pro.");
+    // 10회 초과: 완전 차단 → 업그레이드 페이지
+    if (!canAnalyze()) {
       router.push("/upgrade");
       return;
     }
 
-    try {
-      const detail = useHighDetail && premiumState.isPremium ? "high" : "low";
+    // 7~9회: 분석은 계속 허용하되 모달로 유도
+    if (shouldShowModal()) {
+      setShowUpgradeModal(true);
+      // 모달 표시 후에도 분석은 계속 진행
+    }
 
+    setLoading(true);
+    setLoadingMsg(tr.loadingMsgs[0]);
+
+    try {
       const res = await fetch("/api/rescue", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: imageB64, timeLeft, energy, lang, detail }),
+        body: JSON.stringify({ imageBase64: imageB64, timeLeft, energy, lang }),
       });
       const data = await res.json();
-
-      // 횟수 차감
-      if (premiumState.isPremium && useHighDetail && canFocusAnalysis()) {
-        useFocusAnalysis();
-      } else {
-        useFreeAnalysis();
-      }
-
+      useAnalysis();
       localStorage.setItem("rescueResult", JSON.stringify({ ...data, imageB64 }));
       router.push("/result");
     } catch {
@@ -409,102 +386,27 @@ export default function Home() {
         </div>
       </main>
 
-      {/* 업그레이드 모달 */}
+      {/* 업그레이드 모달 (7~9회 사용 시 분석 중에 표시) */}
       {showUpgradeModal && (
-        <div style={{
-          position: "fixed", inset: 0,
-          background: "rgba(0,0,0,0.5)",
-          display: "flex", alignItems: "flex-end",
-          zIndex: 100,
-        }}>
-          <div style={{
-            width: "100%",
-            background: "white",
-            borderRadius: "20px 20px 0 0",
-            padding: "2rem 1.5rem 2.5rem",
-            maxHeight: "80vh",
-            overflowY: "auto",
-          }}>
-            <button
-              onClick={() => setShowUpgradeModal(false)}
-              style={{
-                float: "right",
-                background: "#f0f0f0",
-                border: "none",
-                borderRadius: "50%",
-                width: 32,
-                height: 32,
-                fontSize: 18,
-                cursor: "pointer",
-              }}
-            >
-              ✕
-            </button>
-
-            <h2 style={{ fontSize: "1.3rem", marginBottom: "1rem", color: "#2D5A2D" }}>
-              {lang === "ko" ? `무료 분석 ${10 - premiumState.freeAnalysisCount}회 남았어요` : `${10 - premiumState.freeAnalysisCount} free analyses left`}
-            </h2>
-
-            <div
-              style={{
-                background: "#FFF3E0",
-                border: "1px solid #FFB74D",
-                borderRadius: "0.8rem",
-                padding: "1rem",
-                marginBottom: "1.5rem",
-                fontSize: "0.85rem",
-                lineHeight: 1.6,
-                color: "#E65100",
-              }}
-            >
-              <p style={{ margin: 0, marginBottom: "0.5rem", fontWeight: "bold" }}>
-                {lang === "ko" ? "💡 왜 유료인가요?" : "💡 Why paid?"}
-              </p>
-              <p style={{ margin: 0 }}>
-                {lang === "ko"
-                  ? "AI 이미지 분석에는 실시간 비용이 발생합니다. 더 정확한 분석을 제공하기 위해 유료로 운영하고 있습니다."
-                  : "AI image analysis incurs real costs. We operate with a premium model to provide accurate analysis."}
-              </p>
-            </div>
-
-            <p style={{ color: "#666", marginBottom: "1.5rem" }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", zIndex: 100 }}>
+          <div style={{ width: "100%", background: "white", borderRadius: "20px 20px 0 0", padding: "24px 20px 40px" }}>
+            <h2 style={{ fontSize: 18, fontWeight: 900, color: "#2D5A2D", marginBottom: 8 }}>
               {lang === "ko"
-                ? `다음 ${10 - premiumState.freeAnalysisCount}회 분석 후 Pro 구독이 필요합니다.\nPro로 업그레이드하면 무제한 분석이 가능합니다.`
-                : `Pro subscription required after ${10 - premiumState.freeAnalysisCount} more free analyses.\nUpgrade to Pro for unlimited analyses.`}
+                ? `무료 분석 ${10 - premiumState.freeAnalysisCount}회 남았어요`
+                : `${10 - premiumState.freeAnalysisCount} free analyses left`}
+            </h2>
+            <p style={{ color: "#888", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
+              {lang === "ko"
+                ? "AI 이미지 분석은 매 요청마다 비용이 발생합니다.\n프리미엄으로 업그레이드하면 무제한으로 사용할 수 있어요."
+                : "AI analysis costs money per request.\nUpgrade to Premium for unlimited analyses."}
             </p>
-
-            <button
-              onClick={() => {
-                setShowUpgradeModal(false);
-                router.push("/upgrade");
-              }}
-              style={{
-                width: "100%",
-                padding: "1rem",
-                background: "linear-gradient(135deg, #84D98F 0%, #5DC86D 100%)",
-                color: "white",
-                border: "none",
-                borderRadius: "0.8rem",
-                fontSize: "1.1rem",
-                fontWeight: "bold",
-                cursor: "pointer",
-                marginBottom: "0.5rem",
-              }}
-            >
-              {tr.upgradeBtn}
+            <button onClick={() => { setShowUpgradeModal(false); router.push("/upgrade"); }}
+              style={{ width: "100%", padding: "14px", background: "linear-gradient(135deg, #76C442, #5A9E30)", color: "white", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: "pointer", marginBottom: 8 }}>
+              {lang === "ko" ? "프리미엄 시작하기" : "Upgrade to Premium"}
             </button>
-            <button
-              onClick={() => setShowUpgradeModal(false)}
-              style={{
-                width: "100%",
-                padding: "1rem",
-                background: "#f0f0f0",
-                border: "none",
-                borderRadius: "0.8rem",
-                cursor: "pointer",
-              }}
-            >
-              {tr.cancel}
+            <button onClick={() => setShowUpgradeModal(false)}
+              style={{ width: "100%", padding: "14px", background: "#f5f5f5", border: "none", borderRadius: 12, fontSize: 14, color: "#666", cursor: "pointer" }}>
+              {lang === "ko" ? "나중에" : "Later"}
             </button>
           </div>
         </div>
