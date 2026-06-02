@@ -54,19 +54,16 @@ export default function UpgradePage() {
   async function handlePurchase(pkg: PurchasesPackage) {
     setProcessing(true);
     setError(null);
-    try {
-      const success = await purchasePackage(pkg);
-      if (success) {
-        upgrade();
-        router.replace("/");
-      } else {
-        setError(lang === "ko" ? "결제가 취소됐어요." : "Purchase was cancelled.");
-      }
-    } catch {
-      setError(lang === "ko" ? "결제 중 오류가 발생했어요." : "Purchase failed.");
-    } finally {
-      setProcessing(false);
+    const result = await purchasePackage(pkg);
+    if (result.success) {
+      upgrade();
+      router.replace("/");
+    } else if (result.error) {
+      setError(result.error);
+    } else {
+      setError(lang === "ko" ? "결제가 취소됐어요." : "Purchase was cancelled.");
     }
+    setProcessing(false);
   }
 
   async function handleMockPurchase() {

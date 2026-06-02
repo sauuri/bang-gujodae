@@ -35,23 +35,23 @@ export async function isPremiumActive(): Promise<boolean> {
 export async function getOfferings(): Promise<PurchasesPackage[]> {
   try {
     const { current } = await Purchases.getOfferings();
-    const packages = current?.availablePackages ?? [];
-    // Monthly만 표시
-    return packages.filter(p => p.packageType === PACKAGE_TYPE.MONTHLY);
+    return current?.availablePackages ?? [];
   } catch (e) {
     console.error("getOfferings error:", e);
     return [];
   }
 }
 
-export async function purchasePackage(pkg: PurchasesPackage): Promise<boolean> {
+export async function purchasePackage(pkg: PurchasesPackage): Promise<{ success: boolean; error?: string }> {
   try {
     const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
-    return ENTITLEMENT_ID in customerInfo.entitlements.active;
+    const success = ENTITLEMENT_ID in customerInfo.entitlements.active;
+    return { success };
   } catch (e: any) {
-    if (e?.userCancelled) return false;
-    console.error("purchasePackage error:", e);
-    return false;
+    if (e?.userCancelled) return { success: false };
+    const msg = e?.message || e?.code || JSON.stringify(e);
+    console.error("purchasePackage error:", msg);
+    return { success: false, error: msg };
   }
 }
 
