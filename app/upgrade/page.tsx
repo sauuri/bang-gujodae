@@ -35,6 +35,7 @@ export default function UpgradePage() {
   const [devCode, setDevCode] = useState("");
   const [devError, setDevError] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -104,6 +105,7 @@ export default function UpgradePage() {
   const remaining = Math.max(0, 10 - state.freeAnalysisCount);
 
   return (
+    <>
     <div style={{ background: "#F2FBEA", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
 
       {/* 헤더 */}
@@ -146,9 +148,9 @@ export default function UpgradePage() {
                 {lang === "ko" ? "구매 복원" : "Restore Purchases"}
               </button>
             )}
-            <button onClick={() => { downgrade(); router.replace("/"); }}
+            <button onClick={() => setShowConfirm(true)}
               style={{ width: "100%", padding: "12px", background: "none", border: "none", fontSize: 12, color: "#bbb", cursor: "pointer" }}>
-              {lang === "ko" ? "[DEV] 구독 해지" : "[DEV] Downgrade"}
+              {lang === "ko" ? "구독 해지" : "Cancel Subscription"}
             </button>
           </div>
         ) : (
@@ -293,5 +295,36 @@ export default function UpgradePage() {
         )}
       </div>
     </div>
+
+    {/* 구독 해지 확인 모달 */}
+    {showConfirm && (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", zIndex: 100 }}>
+        <div style={{ width: "100%", background: "white", borderRadius: "20px 20px 0 0", padding: "28px 20px 40px" }}>
+          <h2 style={{ fontSize: 18, fontWeight: 900, color: "#1a2744", marginBottom: 8, textAlign: "center" }}>
+            {lang === "ko" ? "구독을 해지할까요?" : "Cancel subscription?"}
+          </h2>
+          <p style={{ color: "#888", fontSize: 13, textAlign: "center", marginBottom: 24, lineHeight: 1.6 }}>
+            {lang === "ko"
+              ? "해지하면 프리미엄 기능이 즉시 종료됩니다."
+              : "You will lose access to premium features immediately."}
+          </p>
+          <button
+            onClick={() => {
+              downgrade();
+              setShowConfirm(false);
+              router.replace("/");
+            }}
+            style={{ width: "100%", padding: "14px", background: "#ff6b6b", color: "white", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: "pointer", marginBottom: 10 }}>
+            {lang === "ko" ? "네, 해지할게요" : "Yes, cancel"}
+          </button>
+          <button
+            onClick={() => setShowConfirm(false)}
+            style={{ width: "100%", padding: "14px", background: "#f5f5f5", border: "none", borderRadius: 12, fontSize: 14, color: "#666", cursor: "pointer" }}>
+            {lang === "ko" ? "취소" : "Keep subscription"}
+          </button>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
