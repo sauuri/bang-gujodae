@@ -8,6 +8,7 @@ import { hapticLight, hapticMedium } from "./utils/haptics";
 import { useLang } from "./utils/LangContext";
 import { usePremium } from "./utils/PremiumContext";
 import { t } from "./utils/i18n";
+import { initRevenueCat, isPremiumActive } from "./utils/RevenueCatService";
 
 async function resizeImage(file: File): Promise<string> {
   return new Promise((resolve) => {
@@ -37,7 +38,7 @@ export default function Home() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const { lang, toggle } = useLang();
-  const { state: premiumState, canAnalyze, shouldShowModal, useAnalysis } = usePremium();
+  const { state: premiumState, canAnalyze, shouldShowModal, useAnalysis, upgrade } = usePremium();
   const tr = t(lang);
 
   const [preview, setPreview]         = useState<string | null>(null);
@@ -55,14 +56,24 @@ export default function Home() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem("bangStreak");
-      if (s) setStreak(JSON.parse(s));
-      const h = localStorage.getItem("bangHistory");
-      if (h) setHistoryCount(JSON.parse(h).length);
-      setShowSplash(true);
-    } catch {}
-    setInitialized(true);
+    const init = async () => {
+      try {
+        const s = localStorage.getItem("bangStreak");
+        if (s) setStreak(JSON.parse(s));
+        const h = localStorage.getItem("bangHistory");
+        if (h) setHistoryCount(JSON.parse(h).length);
+        setShowSplash(true);
+
+        // RevenueCat: 네이티브 환경에서만 실행
+        if ((window as any).Capacitor?.isNativePlatform?.()) {
+          await initRevenueCat();
+          const active = await isPremiumActive();
+          if (active) upgrade();
+        }
+      } catch {}
+      setInitialized(true);
+    };
+    init();
   }, []);
 
   useEffect(() => {

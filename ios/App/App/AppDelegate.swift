@@ -3,6 +3,7 @@ import UIKit
 import Capacitor
 import TimerShared
 import UserNotifications
+import RevenueCat
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -11,6 +12,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+
+        // RevenueCat 초기화
+        Purchases.logLevel = .debug
+        Purchases.configure(withAPIKey: "test_NWAcGPIOQbxFeBslHlZIVdFnXSE")
+
         return true
     }
 
