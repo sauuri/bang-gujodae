@@ -1,4 +1,4 @@
-import { Purchases, LOG_LEVEL, type CustomerInfo, type PurchasesPackage } from "@revenuecat/purchases-capacitor";
+import { Purchases, LOG_LEVEL, PACKAGE_TYPE, type CustomerInfo, type PurchasesPackage } from "@revenuecat/purchases-capacitor";
 
 const API_KEY_IOS = "test_NWAcGPIOQbxFeBslHlZIVdFnXSE";
 const ENTITLEMENT_ID = "방구조대 Pro";
@@ -35,7 +35,9 @@ export async function isPremiumActive(): Promise<boolean> {
 export async function getOfferings(): Promise<PurchasesPackage[]> {
   try {
     const { current } = await Purchases.getOfferings();
-    return current?.availablePackages ?? [];
+    const packages = current?.availablePackages ?? [];
+    // Monthly만 표시
+    return packages.filter(p => p.packageType === PACKAGE_TYPE.MONTHLY);
   } catch (e) {
     console.error("getOfferings error:", e);
     return [];
