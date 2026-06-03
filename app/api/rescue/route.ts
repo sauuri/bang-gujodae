@@ -69,22 +69,27 @@ steps count: ${stepCount} (only what can realistically be done in ${timeLeft} at
 messScore 기준: 0=완벽히 깨끗, 30=약간 어수선, 60=꽤 어지러움, 80=많이 어지러움, 100=혼돈
 steps 개수: ${stepCount} (에너지와 시간 ${timeLeft} 안에 실제로 끝낼 수 있는 것만)`;
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: systemPrompt },
-      {
-        role: "user",
-        content: [
-          { type: "image_url", image_url: { url: imageBase64, detail: detail as "low" | "high" } },
-          { type: "text", text: userPrompt },
-        ],
-      },
-    ],
-    max_tokens: 1100,
-    response_format: { type: "json_object" },
-  });
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: [
+            { type: "image_url", image_url: { url: imageBase64, detail: detail as "low" | "high" } },
+            { type: "text", text: userPrompt },
+          ],
+        },
+      ],
+      max_tokens: 1100,
+      response_format: { type: "json_object" },
+    });
 
-  const data = JSON.parse(completion.choices[0].message.content || "{}");
-  return NextResponse.json(data);
+    const data = JSON.parse(completion.choices[0].message.content || "{}");
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error("[rescue] OpenAI error:", err);
+    return NextResponse.json({ error: "AI 분석에 실패했어요." }, { status: 500 });
+  }
 }
