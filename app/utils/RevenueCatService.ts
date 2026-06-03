@@ -1,3 +1,5 @@
+// 유료화 중단 (2026-06-04)
+/*
 import { Purchases, LOG_LEVEL, PACKAGE_TYPE, type CustomerInfo, type PurchasesPackage } from "@revenuecat/purchases-capacitor";
 
 const API_KEY_IOS = "test_NWAcGPIOQbxFeBslHlZIVdFnXSE";
@@ -64,3 +66,4 @@ export async function restorePurchases(): Promise<boolean> {
     return false;
   }
 }
+*/

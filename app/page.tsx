@@ -6,9 +6,9 @@ import SplashIntro from "./components/SplashIntro";
 import RobotSprite from "./components/RobotSprite";
 import { hapticLight, hapticMedium } from "./utils/haptics";
 import { useLang } from "./utils/LangContext";
-import { usePremium } from "./utils/PremiumContext";
+// import { usePremium } from "./utils/PremiumContext"; // 유료화 중단 (2026-06-04)
 import { t } from "./utils/i18n";
-import { initRevenueCat, isPremiumActive } from "./utils/RevenueCatService";
+// import { initRevenueCat, isPremiumActive } from "./utils/RevenueCatService"; // 유료화 중단 (2026-06-04)
 
 async function resizeImage(file: File): Promise<string> {
   return new Promise((resolve) => {
@@ -38,7 +38,7 @@ export default function Home() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const { lang, toggle } = useLang();
-  const { state: premiumState, canAnalyze, shouldShowModal, useAnalysis, upgrade } = usePremium();
+  // const { state: premiumState, canAnalyze, shouldShowModal, useAnalysis, upgrade } = usePremium(); // 유료화 중단 (2026-06-04)
   const tr = t(lang);
 
   const [preview, setPreview]         = useState<string | null>(null);
@@ -53,7 +53,7 @@ export default function Home() {
   const [historyCount, setHistoryCount] = useState(0);
   const [showSplash, setShowSplash]   = useState(false);
   const [initialized, setInitialized] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  // const [showUpgradeModal, setShowUpgradeModal] = useState(false); // 유료화 중단 (2026-06-04)
 
   useEffect(() => {
     const init = async () => {
@@ -64,12 +64,12 @@ export default function Home() {
         if (h) setHistoryCount(JSON.parse(h).length);
         setShowSplash(true);
 
-        // RevenueCat: 네이티브 환경에서만 실행
-        if ((window as any).Capacitor?.isNativePlatform?.()) {
-          await initRevenueCat();
-          const active = await isPremiumActive();
-          if (active) upgrade();
-        }
+        // 유료화 중단 (2026-06-04)
+        // if ((window as any).Capacitor?.isNativePlatform?.()) {
+        //   await initRevenueCat();
+        //   const active = await isPremiumActive();
+        //   if (active) upgrade();
+        // }
       } catch {}
       setInitialized(true);
     };
@@ -100,17 +100,14 @@ export default function Home() {
     if (!imageB64) return;
     hapticMedium();
 
-    // 10회 초과: 완전 차단 → 업그레이드 페이지
-    if (!canAnalyze()) {
-      router.push("/upgrade");
-      return;
-    }
-
-    // 7~9회: 분석은 계속 허용하되 모달로 유도
-    if (shouldShowModal()) {
-      setShowUpgradeModal(true);
-      // 모달 표시 후에도 분석은 계속 진행
-    }
+    // 유료화 중단 (2026-06-04)
+    // if (!canAnalyze()) {
+    //   router.push("/upgrade");
+    //   return;
+    // }
+    // if (shouldShowModal()) {
+    //   setShowUpgradeModal(true);
+    // }
 
     setLoading(true);
     setLoadingMsg(tr.loadingMsgs[0]);
@@ -122,7 +119,7 @@ export default function Home() {
         body: JSON.stringify({ imageBase64: imageB64, timeLeft, energy, lang }),
       });
       const data = await res.json();
-      useAnalysis();
+      // useAnalysis(); // 유료화 중단 (2026-06-04)
       localStorage.setItem("rescueResult", JSON.stringify({ ...data, imageB64 }));
       router.push("/result");
     } catch {
@@ -209,6 +206,7 @@ export default function Home() {
               <button onClick={toggle} style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 50, padding: "5px 12px", fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer" }}>
                 {lang === "ko" ? "EN" : "한"}
               </button>
+              {/* 유료화 중단 (2026-06-04)
               <button
                 onClick={() => router.push("/upgrade")}
                 style={{
@@ -220,6 +218,7 @@ export default function Home() {
               >
                 {premiumState.isPremium ? "⭐ Pro" : "⭐ Pro"}
               </button>
+              */}
             </div>
           </div>
 
@@ -273,7 +272,7 @@ export default function Home() {
         {/* 본문 */}
         <div style={{ padding: "0 16px", marginTop: 16 }}>
 
-          {/* 무료 분석 잔여 표시 (비프리미엄만) */}
+          {/* 유료화 중단 (2026-06-04)
           {!premiumState.isPremium && premiumState.freeAnalysisCount > 0 && (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, padding: "8px 12px", background: "white", borderRadius: 10, border: "1px solid #E8F5E9" }}>
               <span style={{ fontSize: 12, color: "#888" }}>
@@ -286,6 +285,7 @@ export default function Home() {
               </div>
             </div>
           )}
+          */}
 
           {/* 사진 업로드 */}
           <div style={{ marginBottom: 12 }}>
@@ -368,7 +368,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* 업그레이드 모달 (7~9회 사용 시 분석 중에 표시) */}
+      {/* 유료화 중단 (2026-06-04)
       {showUpgradeModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", zIndex: 100 }}>
           <div style={{ width: "100%", background: "white", borderRadius: "20px 20px 0 0", padding: "24px 20px 40px" }}>
@@ -393,6 +393,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      */}
     </>
   );
 }

@@ -1,3 +1,5 @@
+// 유료화 중단 (2026-06-04)
+/*
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
@@ -14,12 +16,12 @@ interface PremiumContextType {
   state: PremiumState;
   upgrade: () => void;
   downgrade: () => void;
-  canAnalyze: () => boolean;        // 분석 가능 여부 (무료 10회 or 프리미엄)
-  shouldShowModal: () => boolean;   // 7회 이상이면 모달 유도
-  useAnalysis: () => void;          // 분석 횟수 차감
-  canFocusAnalysis: () => boolean;  // 프리미엄 고정밀 분석 가능 여부 (월 20회)
-  useFocusAnalysis: () => void;     // 고정밀 횟수 차감
-  useStreakShield: () => boolean;   // 보호권 사용
+  canAnalyze: () => boolean;
+  shouldShowModal: () => boolean;
+  useAnalysis: () => void;
+  canFocusAnalysis: () => boolean;
+  useFocusAnalysis: () => void;
+  useStreakShield: () => boolean;
 }
 
 const PremiumContext = createContext<PremiumContextType | undefined>(undefined);
@@ -131,3 +133,4 @@ export function usePremium(): PremiumContextType {
   if (!ctx) throw new Error("usePremium must be inside PremiumProvider");
   return ctx;
 }
+*/

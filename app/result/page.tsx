@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { hapticLight, hapticMedium, hapticHeavy, hapticSuccess } from "../utils/haptics";
 import { useLang } from "../utils/LangContext";
-import { usePremium } from "../utils/PremiumContext";
+// import { usePremium } from "../utils/PremiumContext"; // 유료화 중단 (2026-06-04)
 import { t } from "../utils/i18n";
 
 function playSfxCompare() {
@@ -164,7 +164,7 @@ function MessScoreRing({ score, scoreLabel, scoreSub, messLabel }: { score: numb
 export default function ResultPage() {
   const router = useRouter();
   const { lang, toggle: toggleLang } = useLang();
-  const { state: premiumState, useStreakShield } = usePremium();
+  // const { state: premiumState, useStreakShield } = usePremium(); // 유료화 중단 (2026-06-04)
   const tr = t(lang);
   const [result, setResult] = useState<RescueResult | null>(null);
   const [checked, setChecked] = useState<boolean[]>([]);
@@ -180,7 +180,7 @@ export default function ResultPage() {
   const [doneFlash, setDoneFlash] = useState(false);
   const [timer, setTimer] = useState<TimerState | null>(null);
   const [focusMode, setFocusMode] = useState(false);
-  const [showShieldModal, setShowShieldModal] = useState(false);
+  // const [showShieldModal, setShowShieldModal] = useState(false); // 유료화 중단 (2026-06-04)
   const prevAllDoneRef = useRef(false);
   const afterInputRef = useRef<HTMLInputElement>(null);
 
@@ -777,6 +777,7 @@ export default function ResultPage() {
           </div>
         )}
 
+        {/* 유료화 중단 (2026-06-04)
         {!anyDone && premiumState.isPremium && premiumState.streakShields > 0 && (
           <button
             onClick={() => setShowShieldModal(true)}
@@ -796,6 +797,7 @@ export default function ResultPage() {
             🛡️ {lang === "ko" ? "오늘 못 했어요" : "Couldn't do it today"}
           </button>
         )}
+        */}
 
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           <button onClick={() => router.push("/history")}
@@ -820,7 +822,7 @@ export default function ResultPage() {
       </div>
     </main>
 
-    {/* 스트릭 보호권 모달 */}
+    {/* 유료화 중단 (2026-06-04)
     {showShieldModal && (
       <div style={{
         position: "fixed", inset: 0,
@@ -881,6 +883,7 @@ export default function ResultPage() {
         </div>
       </div>
     )}
+    */}
     </>
   );
 }

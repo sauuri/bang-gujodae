@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLang } from "../utils/LangContext";
-import { usePremium } from "../utils/PremiumContext";
+// import { usePremium } from "../utils/PremiumContext"; // 유료화 중단 (2026-06-04)
 import { t } from "../utils/i18n";
 
 interface HistoryEntry {
@@ -43,7 +43,7 @@ function Sparkline({ data, tr }: { data: HistoryEntry[]; tr: ReturnType<typeof t
 export default function HistoryPage() {
   const router = useRouter();
   const { lang } = useLang();
-  const { state: premiumState } = usePremium();
+  // const { state: premiumState } = usePremium(); // 유료화 중단 (2026-06-04)
   const tr = t(lang);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -53,12 +53,12 @@ export default function HistoryPage() {
       const raw = localStorage.getItem("bangHistory");
       if (raw) {
         const allHistory = JSON.parse(raw);
-        // 무료 사용자는 최근 7개만, 프리미엄은 무제한
-        const limitedHistory = premiumState.isPremium ? allHistory : allHistory.slice(0, 7);
-        setHistory(limitedHistory);
+        // 유료화 중단 (2026-06-04) — 전체 기록 표시
+        // const limitedHistory = premiumState.isPremium ? allHistory : allHistory.slice(0, 7);
+        setHistory(allHistory);
       }
     } catch {}
-  }, [premiumState.isPremium]);
+  }, []);
 
   const totalRescues = history.length;
   const totalCompleted = history.reduce((s, h) => s + (h.completedCount ?? 0), 0);

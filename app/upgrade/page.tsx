@@ -1,3 +1,5 @@
+// 유료화 중단 (2026-06-04)
+/*
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -13,7 +15,6 @@ import {
   restorePurchases,
 } from "@/app/utils/RevenueCatService";
 
-// 웹 환경에서는 RevenueCat 미사용 (iOS 전용)
 const isNative = () => typeof window !== "undefined" && !!(window as any).Capacitor?.isNativePlatform?.();
 
 const DEV_CODE = "19990630";
@@ -108,7 +109,6 @@ export default function UpgradePage() {
     <>
     <div style={{ background: "#F2FBEA", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
 
-      {/* 헤더 */}
       <div style={{
         background: "linear-gradient(135deg, #76C442 0%, #5A9E30 100%)",
         padding: "env(safe-area-inset-top, 16px) 16px 16px",
@@ -126,7 +126,6 @@ export default function UpgradePage() {
 
       <div style={{ flex: 1, padding: "24px 20px 48px", maxWidth: 480, margin: "0 auto", width: "100%" }}>
 
-        {/* 이미 프리미엄 */}
         {state.isPremium ? (
           <div style={{ textAlign: "center" }}>
             <p style={{ fontSize: 48, margin: "0 0 12px" }}>⭐</p>
@@ -155,7 +154,6 @@ export default function UpgradePage() {
           </div>
         ) : (
           <>
-            {/* 공지 배너 */}
             <div style={{ background: "#FFF8E1", border: "1px solid #FFCC80", borderRadius: 12, padding: "12px 14px", marginBottom: 20, fontSize: 13, lineHeight: 1.6, color: "#E65100" }}>
               <strong>{lang === "ko" ? "💡 왜 유료인가요?" : "💡 Why paid?"}</strong><br />
               {lang === "ko"
@@ -163,7 +161,6 @@ export default function UpgradePage() {
                 : "AI analysis costs money per request. We offer 10 free analyses, then premium."}
             </div>
 
-            {/* 잔여 횟수 */}
             <div style={{ marginBottom: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                 <span style={{ fontSize: 13, color: "#888" }}>
@@ -176,7 +173,6 @@ export default function UpgradePage() {
               </div>
             </div>
 
-            {/* 타이틀 */}
             <h1 style={{ fontSize: 22, fontWeight: 900, color: "#2D5A2D", textAlign: "center", marginBottom: 4 }}>
               {lang === "ko" ? "프리미엄으로 시작하세요" : "Upgrade to Premium"}
             </h1>
@@ -184,7 +180,6 @@ export default function UpgradePage() {
               {lang === "ko" ? "복잡하게 생각하지 않아도 됩니다." : "No overthinking needed."}
             </p>
 
-            {/* 기능 리스트 */}
             <div style={{ background: "white", borderRadius: 14, padding: "16px 18px", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
               {FEATURES(lang).map((f, i, arr) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < arr.length - 1 ? "1px solid #f5f5f5" : "none" }}>
@@ -194,12 +189,10 @@ export default function UpgradePage() {
               ))}
             </div>
 
-            {/* 오류 메시지 */}
             {error && (
               <p style={{ color: "#ff6b6b", fontSize: 13, textAlign: "center", marginBottom: 12 }}>{error}</p>
             )}
 
-            {/* 결제 버튼: 네이티브(iOS) → RevenueCat, 웹 → Mock */}
             {isNative() && packages.length > 0 ? (
               <>
                 {packages.map((pkg) => (
@@ -234,7 +227,6 @@ export default function UpgradePage() {
                 </button>
               </>
             ) : (
-              /* 웹 또는 패키지 로딩 전 */
               <button
                 disabled={processing}
                 onClick={handleMockPurchase}
@@ -260,7 +252,6 @@ export default function UpgradePage() {
               {lang === "ko" ? "언제든지 해지 가능 · Apple이 관리" : "Cancel anytime · Managed by Apple"}
             </p>
 
-            {/* 개발자 코드 */}
             <div style={{ borderTop: "1px solid #eee", paddingTop: 24 }}>
               <p style={{ fontSize: 12, color: "#ccc", textAlign: "center", marginBottom: 10 }}>
                 {lang === "ko" ? "코드가 있으신가요?" : "Have a code?"}
@@ -296,7 +287,6 @@ export default function UpgradePage() {
       </div>
     </div>
 
-    {/* 구독 해지 확인 모달 */}
     {showConfirm && (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", zIndex: 100 }}>
         <div style={{ width: "100%", background: "white", borderRadius: "20px 20px 0 0", padding: "28px 20px 40px" }}>
@@ -328,3 +318,4 @@ export default function UpgradePage() {
     </>
   );
 }
+*/

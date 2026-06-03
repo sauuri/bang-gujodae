@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { LangProvider } from "./utils/LangContext";
-import { PremiumProvider } from "./utils/PremiumContext";
+// import { PremiumProvider } from "./utils/PremiumContext"; // 유료화 중단 (2026-06-04)
 
 export const metadata: Metadata = {
   title: "방구조대 — 방 정리 순서 AI",
@@ -18,9 +18,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko">
       <body style={{ background: "#F2FBEA" }}>
-        <PremiumProvider>
+        {/* <PremiumProvider> */}
           <LangProvider>{children}</LangProvider>
-        </PremiumProvider>
+        {/* </PremiumProvider> */}
       </body>
     </html>
   );
