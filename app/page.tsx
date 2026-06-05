@@ -440,9 +440,119 @@ function HomeInner() {
 
         <div style={{ flex: 1, padding: "20px 16px max(24px, env(safe-area-inset-bottom, 24px))" }}>
 
+          {/* 사진으로 분석하기 — 메인 카드 */}
+          <div style={{
+            background: "white",
+            borderRadius: 20,
+            border: "2px solid #B5DFA0",
+            padding: "18px 18px 20px",
+            marginBottom: 20,
+            boxShadow: "0 4px 16px rgba(90,158,48,0.10)",
+          }}>
+            {/* 헤더 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 12,
+                background: "linear-gradient(135deg, #76C442, #5A9E30)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 20, flexShrink: 0,
+                boxShadow: "0 2px 8px rgba(90,158,48,0.3)",
+              }}>
+                📸
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: "#1a2744" }}>
+                  {isEn ? "Analyze with Photo" : "사진으로 분석하기"}
+                </div>
+                <div style={{ fontSize: 11, color: "#888", marginTop: 1 }}>
+                  {isEn ? "AI reads your room & picks the order" : "AI가 방을 직접 보고 순서를 뽑아줘요"}
+                </div>
+              </div>
+            </div>
+
+            {/* 업로드 영역 */}
+            <div
+              onClick={() => inputRef.current?.click()}
+              style={{
+                borderRadius: 14, border: "2px dashed #B5DFA0",
+                overflow: "hidden", cursor: "pointer", background: "#F2FBEA",
+                minHeight: 120, display: "flex", alignItems: "center", justifyContent: "center",
+                marginBottom: 12,
+              }}
+            >
+              {preview ? (
+                <img src={preview} alt="preview" style={{ width: "100%", maxHeight: 200, objectFit: "cover", display: "block" }} />
+              ) : (
+                <div style={{ textAlign: "center", padding: "24px 20px" }}>
+                  <div style={{ fontSize: 36, marginBottom: 8 }}>📷</div>
+                  <div style={{ fontSize: 14, color: "#5A9E30", fontWeight: 800, marginBottom: 4 }}>
+                    {isEn ? "Tap to take / upload photo" : "탭해서 사진 찍거나 올리기"}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#aaa" }}>
+                    {isEn ? "Drag & drop also works" : "드래그도 가능해요"}
+                  </div>
+                </div>
+              )}
+              <input ref={inputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }}
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+            </div>
+
+            {/* 에너지 + 시간 */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, color: "#aaa", fontWeight: 700, letterSpacing: 0.5, marginBottom: 5 }}>{isEn ? "ENERGY" : "에너지"}</div>
+                <select value={energy} onChange={e => setEnergy(Number(e.target.value))}
+                  style={{ width: "100%", padding: "10px 10px", borderRadius: 10, border: "1.5px solid #e5e7eb", fontSize: 12, fontWeight: 700, background: "white", color: "#1a2744" }}>
+                  {(isEn
+                    ? ["😵 Almost none", "😩 Very low", "😐 Some", "🙂 Good", "🔥 Full"]
+                    : ["😵 거의 없음", "😩 많이 낮음", "😐 조금", "🙂 있음", "🔥 풀"]
+                  ).map((l, i) => <option key={i} value={i + 1}>{l}</option>)}
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, color: "#aaa", fontWeight: 700, letterSpacing: 0.5, marginBottom: 5 }}>{isEn ? "TIME" : "시간"}</div>
+                <select value={timeLeft} onChange={e => setTimeLeft(e.target.value)}
+                  style={{ width: "100%", padding: "10px 10px", borderRadius: 10, border: "1.5px solid #e5e7eb", fontSize: 12, fontWeight: 700, background: "white", color: "#1a2744" }}>
+                  {(isEn ? ["10m","20m","30m","1h"] : ["10분","20분","30분","1시간"]).map(o =>
+                    <option key={o} value={o}>{o}</option>
+                  )}
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handlePhotoSubmit}
+              disabled={!imageB64 || loading}
+              style={{
+                width: "100%", padding: "15px",
+                background: imageB64
+                  ? "linear-gradient(135deg, #76C442, #5A9E30)"
+                  : "#e5e7eb",
+                color: imageB64 ? "white" : "#bbb",
+                border: "none", borderRadius: 14,
+                fontSize: 15, fontWeight: 900,
+                cursor: imageB64 ? "pointer" : "default",
+                boxShadow: imageB64 ? "0 4px 14px rgba(90,158,48,0.35)" : "none",
+              }}
+            >
+              {loading
+                ? (isEn ? "Analyzing…" : "분석 중…")
+                : (isEn ? "🚨 Analyze My Room" : "🚨 내 방 분석하기")}
+            </button>
+          </div>
+
+          {/* 구분선 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+            <div style={{ flex: 1, height: 1, background: "#E8F5E9" }} />
+            <span style={{ fontSize: 11, color: "#bbb", fontWeight: 700, letterSpacing: 0.5 }}>
+              {isEn ? "OR QUICK START" : "또는 빠르게 시작"}
+            </span>
+            <div style={{ flex: 1, height: 1, background: "#E8F5E9" }} />
+          </div>
+
           {/* 상황별 구조 */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#999", letterSpacing: 1, marginBottom: 12 }}>
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#bbb", letterSpacing: 1, marginBottom: 10 }}>
               {isEn ? "RESCUE BY SITUATION" : "상황별 구조"}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -476,100 +586,10 @@ function HomeInner() {
             </div>
           </div>
 
-          {/* 사진으로 분석하기 (접기/펼치기) */}
-          <div style={{ background: "white", borderRadius: 16, border: "1.5px solid #E8F5E9", overflow: "hidden" }}>
-            <button
-              onClick={() => { hapticLight(); setShowPhotoForm(v => !v); }}
-              style={{
-                width: "100%", padding: "16px 18px",
-                background: "none", border: "none",
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 20 }}>📸</span>
-                <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: "#1a2744" }}>
-                    {isEn ? "Analyze with Photo" : "사진으로 분석하기"}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#aaa" }}>
-                    {isEn ? "AI reads your room" : "AI가 방을 직접 봐요"}
-                  </div>
-                </div>
-              </div>
-              <span style={{ color: "#bbb", fontSize: 14, transform: showPhotoForm ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
-            </button>
-
-            {showPhotoForm && (
-              <div style={{ padding: "0 16px 20px", borderTop: "1px solid #f5f5f5" }}>
-                {/* 이미지 업로드 */}
-                <div
-                  onClick={() => inputRef.current?.click()}
-                  style={{
-                    marginTop: 16, borderRadius: 12, border: "1.5px dashed #B5DFA0",
-                    overflow: "hidden", cursor: "pointer", background: "#F9FFF5",
-                    minHeight: 100, display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  {preview ? (
-                    <img src={preview} alt="preview" style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
-                  ) : (
-                    <div style={{ textAlign: "center", padding: "20px" }}>
-                      <div style={{ fontSize: 28, marginBottom: 6 }}>📷</div>
-                      <div style={{ fontSize: 13, color: "#5A9E30", fontWeight: 700 }}>
-                        {isEn ? "Tap to upload" : "탭해서 사진 올리기"}
-                      </div>
-                    </div>
-                  )}
-                  <input ref={inputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }}
-                    onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-                </div>
-
-                {/* 에너지 + 시간 */}
-                <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11, color: "#999", fontWeight: 700, marginBottom: 6 }}>{isEn ? "ENERGY" : "에너지"}</div>
-                    <select value={energy} onChange={e => setEnergy(Number(e.target.value))}
-                      style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1.5px solid #e5e7eb", fontSize: 13, fontWeight: 700, background: "white", color: "#1a2744" }}>
-                      {(isEn
-                        ? ["😵 Almost none", "😩 Very low", "😐 Some", "🙂 Good", "🔥 Full"]
-                        : ["😵 거의 없음", "😩 많이 낮음", "😐 조금", "🙂 있음", "🔥 풀"]
-                      ).map((l, i) => <option key={i} value={i + 1}>{l}</option>)}
-                    </select>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11, color: "#999", fontWeight: 700, marginBottom: 6 }}>{isEn ? "TIME" : "시간"}</div>
-                    <select value={timeLeft} onChange={e => setTimeLeft(e.target.value)}
-                      style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1.5px solid #e5e7eb", fontSize: 13, fontWeight: 700, background: "white", color: "#1a2744" }}>
-                      {(isEn ? ["10m","20m","30m","1h"] : ["10분","20분","30분","1시간"]).map(o =>
-                        <option key={o} value={o}>{o}</option>
-                      )}
-                    </select>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handlePhotoSubmit}
-                  disabled={!imageB64 || loading}
-                  style={{
-                    width: "100%", marginTop: 12, padding: "14px",
-                    background: imageB64 ? "linear-gradient(135deg, #76C442, #5A9E30)" : "#e5e7eb",
-                    color: imageB64 ? "white" : "#bbb",
-                    border: "none", borderRadius: 12,
-                    fontSize: 14, fontWeight: 800, cursor: imageB64 ? "pointer" : "default",
-                  }}
-                >
-                  {loading ? (isEn ? "Analyzing…" : "분석 중…") : (isEn ? "🚨 Analyze Room" : "🚨 방 분석하기")}
-                </button>
-              </div>
-            )}
-          </div>
-
           {/* 기록 보기 링크 */}
           <button
             onClick={() => router.push("/history")}
-            style={{ width: "100%", marginTop: 12, padding: "12px", background: "none", border: "none", fontSize: 13, color: "#bbb", cursor: "pointer", fontWeight: 600 }}
+            style={{ width: "100%", marginTop: 4, padding: "12px", background: "none", border: "none", fontSize: 13, color: "#bbb", cursor: "pointer", fontWeight: 600 }}
           >
             {isEn ? "📋 View rescue history" : "📋 구조 기록 보기"}
           </button>
