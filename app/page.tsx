@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SplashIntro from "./components/SplashIntro";
+import RobotSprite from "./components/RobotSprite";
 import { hapticLight, hapticMedium } from "./utils/haptics";
 import { useLang } from "./utils/LangContext";
 import { t } from "./utils/i18n";
@@ -338,19 +339,19 @@ function HomeInner() {
 
   if (!initialized) return null;
 
-  const situations: { id: Situation; emoji: string; label: string; sub: string }[] = isEn
+  const situations: { id: Situation; emoji: string; label: string; sub: string; bg: string; border: string; iconBg: string }[] = isEn
     ? [
-        { id: "guest", emoji: "🚨", label: "Guest Coming", sub: "Fast rescue for any time frame" },
-        { id: "desk",  emoji: "📚", label: "Desk Only",    sub: "Just the work area" },
-        { id: "bed",   emoji: "🛏", label: "Can't Get Up", sub: "Tiniest possible action" },
-        { id: "sleep", emoji: "🌙", label: "2-Min Reset",  sub: "Before you fall asleep" },
+        { id: "guest", emoji: "🚨", label: "Guest Coming", sub: "Fast rescue for any time frame", bg: "#FFF3F3", border: "#FFB3B3", iconBg: "#FFE0E0" },
+        { id: "desk",  emoji: "📚", label: "Desk Only",    sub: "Just the work area",             bg: "#F0F4FF", border: "#B3C4FF", iconBg: "#DAE2FF" },
+        { id: "bed",   emoji: "🛏", label: "Can't Get Up", sub: "Tiniest possible action",        bg: "#F5F0FF", border: "#C9B3FF", iconBg: "#E8DCFF" },
+        { id: "sleep", emoji: "🌙", label: "2-Min Reset",  sub: "Before you fall asleep",         bg: "#1a2744", border: "#2d3f6a", iconBg: "#2d3f6a" },
       ]
     : [
-        { id: "guest", emoji: "🚨", label: "손님 와요",           sub: "시간에 맞는 빠른 구조" },
-        { id: "desk",  emoji: "📚", label: "책상만 살려줘",        sub: "작업 공간만" },
-        { id: "bed",   emoji: "🛏", label: "침대에서 못 일어나겠어요", sub: "아주 작은 행동 하나" },
-        { id: "sleep", emoji: "🌙", label: "자기 전 2분 리셋",     sub: "자기 전 마지막 정리" },
-      ];
+        { id: "guest", emoji: "🚨", label: "손님 와요",               sub: "시간에 맞는 빠른 구조",  bg: "#FFF3F3", border: "#FFB3B3", iconBg: "#FFE0E0" },
+        { id: "desk",  emoji: "📚", label: "책상만 살려줘",            sub: "작업 공간만",            bg: "#F0F4FF", border: "#B3C4FF", iconBg: "#DAE2FF" },
+        { id: "bed",   emoji: "🛏", label: "침대에서 못 일어나겠어요", sub: "아주 작은 행동 하나",    bg: "#F5F0FF", border: "#C9B3FF", iconBg: "#E8DCFF" },
+        { id: "sleep", emoji: "🌙", label: "자기 전 2분 리셋",         sub: "자기 전 마지막 정리",    bg: "#1a2744", border: "#2d3f6a", iconBg: "#2d3f6a" },
+      ] as { id: Situation; emoji: string; label: string; sub: string; bg: string; border: string; iconBg: string }[];
 
   return (
     <>
@@ -370,23 +371,24 @@ function HomeInner() {
 
         {/* 헤더 */}
         <div style={{
-          background: "linear-gradient(160deg, #76C442 0%, #5A9E30 100%)",
+          background: "linear-gradient(160deg, #76C442 0%, #4a9020 100%)",
           padding: "max(28px, env(safe-area-inset-top, 28px)) 20px 28px",
-          borderRadius: "0 0 28px 28px",
+          borderRadius: "0 0 32px 32px",
           position: "relative", overflow: "hidden",
         }}>
-          {/* 배경 원 */}
-          <div style={{ position: "absolute", top: -40, right: -40, width: 150, height: 150, borderRadius: "50%", background: "rgba(255,255,255,0.07)", pointerEvents: "none" }} />
+          {/* 배경 장식 원들 */}
+          <div style={{ position: "absolute", top: -50, right: -50, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,0.07)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: -30, left: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
 
           {/* 상단 바 */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <span style={{ fontSize: 14, fontWeight: 900, color: "white", letterSpacing: 0.5 }}>
               {isEn ? "RoomRescue 🚨" : "방구조대 🚨"}
             </span>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               {weekCount > 0 && (
-                <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: 50, padding: "4px 10px", fontSize: 12, fontWeight: 800, color: "white" }}>
-                  🔥 {isEn ? `${weekCount} this week` : `이번 주 ${weekCount}회`}
+                <div style={{ background: "rgba(255,255,255,0.22)", borderRadius: 50, padding: "4px 10px", fontSize: 12, fontWeight: 800, color: "white" }}>
+                  🔥 {isEn ? `${weekCount}× this week` : `이번 주 ${weekCount}회`}
                 </div>
               )}
               <button onClick={() => { hapticLight(); toggle(); }} style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 50, padding: "5px 12px", fontSize: 12, fontWeight: 800, color: "white", cursor: "pointer" }}>
@@ -395,16 +397,21 @@ function HomeInner() {
             </div>
           </div>
 
-          {/* 태그라인 */}
-          <div style={{ marginBottom: 28 }}>
-            <h1 style={{ fontSize: 26, fontWeight: 900, color: "white", lineHeight: 1.3, marginBottom: 6, letterSpacing: -0.5 }}>
-              {isEn ? "Not the whole room." : "방 전체 말고,"}
-              <br />
-              <span style={{ color: "#FFD54F" }}>{isEn ? "Just one thing." : "지금 하나만."}</span>
-            </h1>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.75)" }}>
-              {isEn ? "10 seconds to start. No thinking needed." : "10초 안에 시작해요. 생각 안 해도 돼요."}
-            </p>
+          {/* 태그라인 + 로봇 */}
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 24 }}>
+            <div>
+              <h1 style={{ fontSize: 28, fontWeight: 900, color: "white", lineHeight: 1.25, marginBottom: 8, letterSpacing: -0.5 }}>
+                {isEn ? "Not the whole room." : "방 전체 말고,"}
+                <br />
+                <span style={{ color: "#FFD54F" }}>{isEn ? "Just one thing." : "지금 하나만."}</span>
+              </h1>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>
+                {isEn ? "Start in 10 seconds.\nNo thinking needed." : "10초 안에 시작해요.\n생각 안 해도 돼요."}
+              </p>
+            </div>
+            <div style={{ flexShrink: 0, animation: "robotFloat 3s ease-in-out infinite" }}>
+              <RobotSprite pose="idle" size={100} />
+            </div>
           </div>
 
           {/* 메인 CTA */}
@@ -416,12 +423,19 @@ function HomeInner() {
               borderRadius: 18, border: "none",
               fontSize: 18, fontWeight: 900,
               color: "#5A9E30", cursor: "pointer",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+              boxShadow: "0 6px 24px rgba(0,0,0,0.18)",
               letterSpacing: -0.3,
             }}
           >
             ⚡ {isEn ? "Do Just One Thing" : "지금 하나만 하기"}
           </button>
+
+          <style>{`
+            @keyframes robotFloat {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-6px); }
+            }
+          `}</style>
         </div>
 
         <div style={{ flex: 1, padding: "20px 16px max(24px, env(safe-area-inset-bottom, 24px))" }}>
@@ -432,23 +446,33 @@ function HomeInner() {
               {isEn ? "RESCUE BY SITUATION" : "상황별 구조"}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {situations.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => handleSituationTap(s.id)}
-                  style={{
-                    background: "white",
-                    borderRadius: 16, border: "1.5px solid #E8F5E9",
-                    padding: "16px 14px",
-                    textAlign: "left", cursor: "pointer",
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-                  }}
-                >
-                  <div style={{ fontSize: 22, marginBottom: 6 }}>{s.emoji}</div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#1a2744", marginBottom: 2, lineHeight: 1.3 }}>{s.label}</div>
-                  <div style={{ fontSize: 11, color: "#aaa", lineHeight: 1.4 }}>{s.sub}</div>
-                </button>
-              ))}
+              {situations.map(s => {
+                const isDark = s.id === "sleep";
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => handleSituationTap(s.id)}
+                    style={{
+                      background: s.bg,
+                      borderRadius: 18, border: `1.5px solid ${s.border}`,
+                      padding: "16px 14px",
+                      textAlign: "left", cursor: "pointer",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    }}
+                  >
+                    <div style={{
+                      width: 38, height: 38, borderRadius: 12,
+                      background: s.iconBg,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 20, marginBottom: 10,
+                    }}>
+                      {s.emoji}
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "white" : "#1a2744", marginBottom: 3, lineHeight: 1.3 }}>{s.label}</div>
+                    <div style={{ fontSize: 11, color: isDark ? "rgba(255,255,255,0.5)" : "#aaa", lineHeight: 1.4 }}>{s.sub}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
