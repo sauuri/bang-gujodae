@@ -103,6 +103,128 @@ function EnergyModal({ lang, situation, onStart, onClose }: {
   );
 }
 
+function HowToUse({ lang }: { lang: string }) {
+  const isEn = lang === "en";
+
+  const steps = isEn
+    ? [
+        {
+          emoji: "⚡",
+          title: 'Tap "Do Just One Thing"',
+          desc: "Pick your energy level. A mission appears in 3 seconds.",
+        },
+        {
+          emoji: "✓",
+          title: "Do it — or break it down",
+          desc: "Done? Great. Too hard? We'll shrink it. Want something else? Swap it.",
+        },
+        {
+          emoji: "🎉",
+          title: "One is enough",
+          desc: "You succeeded the moment you moved. Do one more if you feel like it.",
+        },
+        {
+          emoji: "🚨",
+          title: "Panic mode",
+          desc: 'Guest in 15 min? Tap "Guest Coming" and we\'ll triage the room fast.',
+        },
+      ]
+    : [
+        {
+          emoji: "⚡",
+          title: "지금 하나만 하기 탭",
+          desc: "에너지 고르면 3초 안에 미션 하나가 나와요.",
+        },
+        {
+          emoji: "✓",
+          title: "하거나, 더 쪼개거나",
+          desc: "완료했으면 OK. 너무 어려우면 더 작게 쪼개줘요. 다른 게 하고 싶으면 바꿔요.",
+        },
+        {
+          emoji: "🎉",
+          title: "하나면 충분해요",
+          desc: "몸이 움직인 순간 성공이에요. 하나 더 하고 싶으면 해요.",
+        },
+        {
+          emoji: "🚨",
+          title: "긴급 상황엔 SOS 모드",
+          desc: "손님이 30분 뒤에 온다면? 손님 와요를 탭하면 빠른 구조 순서가 나와요.",
+        },
+      ];
+
+  return (
+    <div style={{ marginTop: 32, paddingBottom: 8 }}>
+      {/* 헤더 */}
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: "#bbb", letterSpacing: 1.5, marginBottom: 6 }}>
+          {isEn ? "HOW IT WORKS" : "이렇게 쓰면 돼요"}
+        </div>
+        <div style={{ width: 32, height: 2, background: "#B5DFA0", borderRadius: 2, margin: "0 auto" }} />
+      </div>
+
+      {/* 스텝 카드들 */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {steps.map((s, i) => (
+          <div key={i} style={{
+            display: "flex", gap: 14, alignItems: "flex-start",
+            background: "white",
+            borderRadius: 16,
+            padding: "16px 18px",
+            border: "1.5px solid #EDF7E6",
+            boxShadow: "0 1px 6px rgba(90,158,48,0.06)",
+          }}>
+            {/* 왼쪽: 번호 + 이모지 */}
+            <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <div style={{
+                width: 32, height: 32,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #76C442, #5A9E30)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 16,
+                boxShadow: "0 2px 8px rgba(90,158,48,0.25)",
+              }}>
+                {s.emoji}
+              </div>
+              {i < steps.length - 1 && (
+                <div style={{ width: 1.5, height: 16, background: "#DBEFC7", borderRadius: 1 }} />
+              )}
+            </div>
+
+            {/* 오른쪽: 텍스트 */}
+            <div style={{ paddingTop: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#1a2744", marginBottom: 4, lineHeight: 1.3 }}>
+                {s.title}
+              </div>
+              <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6 }}>
+                {s.desc}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 하단 문구 */}
+      <div style={{
+        marginTop: 16,
+        padding: "14px 18px",
+        background: "linear-gradient(135deg, #F2FBEA, #E8F5E9)",
+        borderRadius: 14,
+        textAlign: "center",
+        border: "1px solid #C8E6C9",
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: "#5A9E30", marginBottom: 4 }}>
+          {isEn ? "방 전체 말고, 지금 하나만." : "방 전체 말고, 지금 하나만."}
+        </div>
+        <div style={{ fontSize: 11, color: "#8BC34A" }}>
+          {isEn
+            ? "Starting is the hardest part. We handle that."
+            : "시작이 제일 어려워요. 그 부분을 대신해드려요."}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function HomeInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -427,6 +549,10 @@ function HomeInner() {
           >
             {isEn ? "📋 View rescue history" : "📋 구조 기록 보기"}
           </button>
+
+          {/* 사용법 */}
+          <HowToUse lang={lang} />
+
         </div>
       </main>
     </>
