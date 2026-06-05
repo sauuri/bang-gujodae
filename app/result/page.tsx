@@ -136,26 +136,22 @@ function saveHistory(result: RescueResult, completedCount: number, afterImageB64
   } catch {}
 }
 
-function MessScoreRing({ score, scoreLabel, scoreSub, messLabel }: { score: number; scoreLabel: string; scoreSub: string; messLabel: string }) {
-  const color = score >= 70 ? "#ef4444" : score >= 40 ? "#f59e0b" : "#16a34a";
-  const r = 36, circ = 2 * Math.PI * r;
-  const dash = circ * (1 - score / 100);
+function RescueAchievements({ steps, checked, lang }: { steps: { title: string }[]; checked: boolean[]; lang: string }) {
+  const done = steps.filter((_, i) => checked[i]);
+  if (done.length === 0) return null;
+  const isEn = lang === "en";
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-      <svg width="88" height="88" style={{ transform: "rotate(-90deg)" }}>
-        <circle cx="44" cy="44" r={r} fill="none" stroke="#e5e7eb" strokeWidth="7" />
-        <circle cx="44" cy="44" r={r} fill="none" stroke={color} strokeWidth="7"
-          strokeDasharray={circ} strokeDashoffset={dash}
-          strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.6s ease" }} />
-        <text x="44" y="44" textAnchor="middle" dominantBaseline="central"
-          style={{ transform: "rotate(90deg) translate(0px,-88px)", fontSize: 18, fontWeight: 900, fill: color, fontFamily: "inherit" }}>
-          {score}
-        </text>
-      </svg>
-      <div>
-        <div style={{ fontSize: 11, color: "#8e8e93", marginBottom: 4 }}>{scoreLabel}</div>
-        <div style={{ fontSize: 15, fontWeight: 800, color }}>{messLabel}</div>
-        <div style={{ fontSize: 12, color: "#8e8e93", marginTop: 2 }}>{scoreSub}</div>
+    <div style={{ marginTop: 14, borderTop: "1px solid #F2FBEA", paddingTop: 14 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#5A9E30", letterSpacing: 1, marginBottom: 10 }}>
+        {isEn ? "RESCUED TODAY" : "오늘 구조한 것"}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {done.map((s, i) => (
+          <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "#374151", lineHeight: 1.5 }}>
+            <span style={{ color: "#76C442", flexShrink: 0, fontWeight: 900 }}>✅</span>
+            <span>{s.title}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -337,14 +333,126 @@ export default function ResultPage() {
   }
 
   async function shareCompareResult() {
-    if (!compareResult) return;
-    const text = tr.shareCompareText(compareResult.score, compareResult.changes, compareResult.praise);
-    if (navigator.share) {
-      try { await navigator.share({ title: tr.shareCompareTitle, text }); } catch {}
-    } else {
-      await navigator.clipboard.writeText(text);
-      alert(tr.copiedResult);
+    if (!compareResult || !result?.imageB64 || !afterImage) return;
+    try {
+      const dataUrl = await buildShareCard({
+        beforeSrc: result.imageB64,
+        afterSrc: afterImage,
+        score: compareResult.score,
+        changes: compareResult.changes,
+        lang,
+      });
+      // 이미지로 공유 시도
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], "bangGujodae.jpg", { type: "image/jpeg" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: tr.shareCompareTitle });
+        return;
+      }
+      // 이미지 공유 불가시 다운로드
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = "방구조대_결과.jpg";
+      a.click();
+    } catch {
+      // fallback: 텍스트 공유
+      const text = tr.shareCompareText(compareResult.score, compareResult.changes, compareResult.praise);
+      if (navigator.share) {
+        try { await navigator.share({ title: tr.shareCompareTitle, text }); } catch {}
+      } else {
+        await navigator.clipboard.writeText(text);
+        alert(tr.copiedResult);
+      }
     }
+  }
+
+  async function buildShareCard({ beforeSrc, afterSrc, score, changes, lang }: {
+    beforeSrc: string; afterSrc: string; score: number; changes: string[]; lang: string;
+  }): Promise<string> {
+    const W = 800, H = 500;
+    const canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+
+    const loadImg = (src: string) => new Promise<HTMLImageElement>((res, rej) => {
+      const img = new Image(); img.onload = () => res(img); img.onerror = rej; img.src = src;
+    });
+
+    // 배경
+    ctx.fillStyle = "#F2FBEA";
+    ctx.fillRect(0, 0, W, H);
+
+    // 사진 영역 (각 360x340)
+    const [before, after] = await Promise.all([loadImg(beforeSrc), loadImg(afterSrc)]);
+    const drawImg = (img: HTMLImageElement, x: number, y: number, w: number, h: number) => {
+      const scale = Math.max(w / img.width, h / img.height);
+      const sw = img.width * scale, sh = img.height * scale;
+      const sx = (w - sw) / 2, sy = (h - sh) / 2;
+      ctx.drawImage(img, x + sx, y + sy, sw, sh);
+    };
+
+    // 왼쪽 (BEFORE)
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(20, 20, 360, 340, 14);
+    ctx.clip();
+    drawImg(before, 20, 20, 360, 340);
+    ctx.restore();
+    // BEFORE 라벨
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillRect(20, 20, 360, 34);
+    ctx.fillStyle = "white";
+    ctx.font = "bold 14px -apple-system, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("BEFORE", 200, 42);
+
+    // 오른쪽 (AFTER)
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(420, 20, 360, 340, 14);
+    ctx.clip();
+    drawImg(after, 420, 20, 360, 340);
+    ctx.restore();
+    ctx.fillStyle = "rgba(26,55,14,0.65)";
+    ctx.fillRect(420, 20, 360, 34);
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText("AFTER", 600, 42);
+
+    // 하단 정보 영역
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 370, W, 130);
+
+    // 점수 변화 (왼쪽)
+    ctx.fillStyle = "#5A9E30";
+    ctx.font = "bold 28px -apple-system, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(`${score}/10`, 30, 420);
+    ctx.fillStyle = "#aaa";
+    ctx.font = "12px -apple-system, sans-serif";
+    ctx.fillText(lang === "en" ? "Change Score" : "변화 점수", 30, 440);
+
+    // 변화 목록
+    const displayChanges = changes.slice(0, 2);
+    ctx.fillStyle = "#374151";
+    ctx.font = "12px -apple-system, sans-serif";
+    displayChanges.forEach((c, i) => {
+      ctx.fillStyle = "#76C442";
+      ctx.fillText("✓", 30, 468 + i * 20);
+      ctx.fillStyle = "#374151";
+      ctx.fillText(c.length > 38 ? c.slice(0, 38) + "…" : c, 50, 468 + i * 20);
+    });
+
+    // 앱 이름 (오른쪽)
+    ctx.fillStyle = "#5A9E30";
+    ctx.font = "bold 18px -apple-system, sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(lang === "en" ? "RoomRescue 🚨" : "방구조대 🚨", W - 24, 415);
+    ctx.fillStyle = "#bbb";
+    ctx.font = "11px -apple-system, sans-serif";
+    ctx.fillText("bang-gujodae.vercel.app", W - 24, 435);
+
+    return canvas.toDataURL("image/jpeg", 0.92);
   }
 
   return (
@@ -566,17 +674,15 @@ export default function ResultPage() {
 
       <div style={{ padding: "0 20px" }}>
 
-        {/* \{tr.messScoreLabel\} 카드 */}
+        {/* 구조 리포트 카드 */}
         <div className="card" style={{ padding: "20px", marginBottom: 12 }}>
-          <MessScoreRing
-            score={messScore}
-            scoreLabel={tr.messScoreLabel}
-            scoreSub={tr.messScoreSub}
-            messLabel={messScore >= 70 ? tr.messHigh : messScore >= 40 ? tr.messMid : tr.messLow}
-          />
-          <div style={{ marginTop: 14, fontSize: 14, color: "#374151", lineHeight: 1.7, borderTop: "1px solid #F2FBEA", paddingTop: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#5A9E30", letterSpacing: 1, marginBottom: 10 }}>
+            {lang === "en" ? "RESCUE REPORT 🧹" : "구조 리포트 🧹"}
+          </div>
+          <div style={{ fontSize: 15, color: "#374151", lineHeight: 1.7 }}>
             {result.summary}
           </div>
+          <RescueAchievements steps={result.steps} checked={checked} lang={lang} />
         </div>
 
         {/* 정리 순서 카드 */}
@@ -668,15 +774,32 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* 오늘 안 해도 되는 것 */}
-        <div className="card" style={{ padding: "16px 20px", marginBottom: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: 0.5, marginBottom: 10 }}>{tr.skipTitle}</div>
-          {result.skip?.map((s, i) => (
-            <div key={i} style={{ fontSize: 13, color: "#d1d5db", display: "flex", gap: 8, marginBottom: 5, textDecoration: "line-through" }}>
-              <span>✕</span><span>{s}</span>
+        {/* 오늘 하지 마세요 리스트 */}
+        {result.skip?.length > 0 && (
+          <div style={{ background: "#FFF8F0", border: "1.5px solid #FFD0A0", borderRadius: 16, padding: "16px 18px", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+              <span style={{ fontSize: 16 }}>🚫</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: "#D97706", letterSpacing: 0.5 }}>
+                {lang === "en" ? "DON'T DO TODAY" : "오늘 하지 마세요"}
+              </span>
             </div>
-          ))}
-          <div style={{ fontSize: 13, color: "#6b7280", marginTop: 10, fontStyle: "italic" }}>{result.message}</div>
+            <div style={{ fontSize: 12, color: "#92400E", marginBottom: 10, lineHeight: 1.5 }}>
+              {lang === "en"
+                ? "These will drain your energy. Save them for later."
+                : "이것들은 에너지를 다 써버려요. 오늘은 손대지 마세요."}
+            </div>
+            {result.skip.map((s, i) => (
+              <div key={i} style={{ fontSize: 13, color: "#B45309", display: "flex", gap: 8, marginBottom: 6, alignItems: "flex-start" }}>
+                <span style={{ flexShrink: 0, fontWeight: 900 }}>✕</span>
+                <span style={{ lineHeight: 1.5 }}>{s}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* AI 격려 메시지 */}
+        <div style={{ fontSize: 13, color: "#6b7280", padding: "0 4px 12px", fontStyle: "italic", lineHeight: 1.6, textAlign: "center" }}>
+          {result.message}
         </div>
 
         {/* Before / After */}
@@ -773,7 +896,13 @@ export default function ResultPage() {
         )}
         {saved && (
           <div style={{ textAlign: "center", padding: "14px", background: "#DBEFC7", borderRadius: 14, marginBottom: 10, fontSize: 14, fontWeight: 800, color: "#5A9E30" }}>
-            {tr.savedMsg} 🔥 {streak.current} {tr.streakMsg}
+            {(() => {
+              const weekKey = `bangWeek_${new Date().toISOString().slice(0, 7)}`;
+              const weekCount = Number(localStorage.getItem(weekKey) ?? 0);
+              return lang === "en"
+                ? `${tr.savedMsg} 🔥 ${weekCount} rescues this week`
+                : `${tr.savedMsg} 🔥 이번 주 ${weekCount}회 구조`;
+            })()}
           </div>
         )}
 

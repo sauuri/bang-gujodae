@@ -232,7 +232,7 @@ function HomeInner() {
 
   return (
     <>
-      {initialized && showSplash && <SplashIntro onDone={() => { localStorage.setItem("bangOnboarded", "1"); setShowSplash(false); }} />}
+      {initialized && showSplash && <SplashIntro lang={lang} onDone={() => { localStorage.setItem("bangOnboarded", "1"); setShowSplash(false); }} />}
 
       {showGuest && <GuestModal lang={lang} onStart={handleGuestTime} onClose={() => setShowGuest(false)} />}
       {showEnergy && pendingSituation && (

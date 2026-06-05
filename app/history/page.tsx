@@ -64,13 +64,14 @@ export default function HistoryPage() {
   const totalCompleted = history.reduce((s, h) => s + (h.completedCount ?? 0), 0);
   const avgScore = history.length ? Math.round(history.reduce((s, h) => s + (h.messScore ?? 0), 0) / history.length) : 0;
 
-  function getStreak() {
+  function getWeekCount() {
     try {
-      const raw = localStorage.getItem("bangStreak");
-      return raw ? JSON.parse(raw) : { current: 0, best: 0 };
-    } catch { return { current: 0, best: 0 }; }
+      const today = new Date().toISOString().slice(0, 10);
+      const weekKey = `bangWeek_${today.slice(0, 7)}`;
+      return Number(localStorage.getItem(weekKey) ?? 0);
+    } catch { return 0; }
   }
-  const streak = getStreak();
+  const weekCount = getWeekCount();
 
   function clearHistory() {
     localStorage.removeItem("bangHistory");
@@ -99,10 +100,10 @@ export default function HistoryPage() {
       <div style={{ padding: "0 20px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
           {[
-            { label: tr.statCurrentStreak, value: `${streak.current}${tr.streakDays}`, icon: "🔥" },
+            { label: lang === "en" ? "This week" : "이번 주", value: `${weekCount}${tr.times}`, icon: "🔥" },
             { label: tr.statTotalRescue, value: `${totalRescues}${tr.times}`, icon: "🚨" },
             { label: tr.statCompleted, value: `${totalCompleted}`, icon: "✅" },
-            { label: tr.statBestStreak, value: `${streak.best ?? 0}${tr.streakDays}`, icon: "🏆" },
+            { label: lang === "en" ? "Avg score" : "평균 점수", value: avgScore ? `${avgScore}점` : "-", icon: "📊" },
           ].map((stat, i) => (
             <div key={i} style={{ background: "#fff", borderRadius: 16, padding: "16px", textAlign: "center", border: "1px solid #eee" }}>
               <div style={{ fontSize: 22, marginBottom: 4 }}>{stat.icon}</div>

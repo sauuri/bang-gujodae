@@ -69,12 +69,11 @@ function playSfxStart(ctx: AudioContext) {
 }
 // ────────────────────────────────────────────────────────────────
 
-const MSGS = [
-  "안녕! 방구조봇이에요 🤖",
-  "이 방... 많이 어지럽네요!",
-  "싹 쓸어버릴게요!",
-  "깔끔하게 만들어드릴게요 ✨",
-];
+function getMsgs(lang: string) {
+  return lang === "en"
+    ? ["Hi! I'm RoomBot 🤖", "This room needs help!", "Let me sweep it up!", "Clean in no time ✨"]
+    : ["안녕! 방구조봇이에요 🤖", "이 방... 많이 어지럽네요!", "싹 쓸어버릴게요!", "깔끔하게 만들어드릴게요 ✨"];
+}
 
 const SWEEPS = [
   { dir: "right" as const, startLeft: -20, endLeft: 70 },
@@ -86,7 +85,8 @@ const SWEEPS = [
 const MOVE_MS  = 1050;
 const PAUSE_MS = 320;
 
-export default function SplashIntro({ onDone }: { onDone: () => void }) {
+export default function SplashIntro({ onDone, lang = "ko" }: { onDone: () => void; lang?: string }) {
+  const MSGS = getMsgs(lang);
   const [robLeft,  setRobLeft]  = useState(-22);
   const [pose,     setPose]     = useState<RobotPose>("idle");
   const [transit,  setTransit]  = useState(false);
