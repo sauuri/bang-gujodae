@@ -107,6 +107,7 @@ function MissionPageInner() {
   const [startedAt, setStartedAt] = useState<number>(0);
   const [elapsedMs, setElapsedMs] = useState<number>(0);
   const [weekCount, setWeekCount] = useState(0);
+  const [completedMissions, setCompletedMissions] = useState<string[]>([]);
 
   // 손님/책상/침대/자기전 모드는 카테고리 스킵
   useEffect(() => {
@@ -135,6 +136,7 @@ function MissionPageInner() {
           situation, energy, timeMinutes, lang,
           breakdown,
           category: cat ?? category,
+          exclude: completedMissions.slice(-5), // 최근 5개만 전달
         }),
       });
       const data = await res.json();
@@ -167,6 +169,9 @@ function MissionPageInner() {
     setDone(true);
     setCount(c => c + 1);
     setBreakdownChain([]);
+    if (mission?.mission) {
+      setCompletedMissions(prev => [...prev, mission.mission]);
+    }
     try {
       const today = new Date().toISOString().slice(0, 10);
       const raw = localStorage.getItem("bangMissions");

@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
     timeMinutes = 2,
     lang = "ko",
     breakdown,
-    category,            // 지금 제일 거슬리는 것 (옷/컵/쓰레기/책상/침대)
+    category,
+    exclude,
   }: {
     situation?: Situation;
     energy?: number;
@@ -25,7 +26,14 @@ export async function POST(req: NextRequest) {
     lang?: string;
     breakdown?: string;
     category?: string;
+    exclude?: string[];   // 이미 완료한 미션 목록
   } = await req.json();
+
+  const excludeHint = exclude && exclude.length > 0
+    ? (lang === "en"
+        ? `\nDo NOT repeat these missions already done:\n${exclude.map(m => `- "${m}"`).join("\n")}`
+        : `\n이미 완료한 미션이므로 절대 반복하지 마:\n${exclude.map(m => `- "${m}"`).join("\n")}`)
+    : "";
 
   const categoryHint = category && category !== "모르겠음" && category !== "idk"
     ? (lang === "en"
@@ -123,7 +131,7 @@ Respond:
     return isEn
       ? `Context: ${situationContext}
 User energy: ${energyDesc}
-Available time: ${timeMinutes} minutes${categoryHint ? `\n${categoryHint}` : ""}
+Available time: ${timeMinutes} minutes${categoryHint ? `\n${categoryHint}` : ""}${excludeHint}
 
 Give ONE mission:
 {
@@ -134,7 +142,7 @@ Give ONE mission:
 }`
       : `상황: ${situationContext}
 에너지 상태: ${energyDesc}
-가용 시간: ${timeMinutes}분${categoryHint ? `\n${categoryHint}` : ""}
+가용 시간: ${timeMinutes}분${categoryHint ? `\n${categoryHint}` : ""}${excludeHint}
 
 미션 하나:
 {
