@@ -9,7 +9,24 @@ export const translations: { ko: TranslationStrings; en: TranslationStrings } = 
   ko: {
     // 공통
     appName: "방구조대",
+    tagline: "방 전체 말고, 지금 하나만.",
     back: "← 다시",
+
+    // 홈 — 새 컨셉
+    mainCta: "지금 하나만 하기",
+    situationTitle: "상황별 구조",
+    situations: {
+      quick: { emoji: "⚡", label: "지금 하나만" },
+      guest: { emoji: "🚨", label: "손님 와요" },
+      desk:  { emoji: "📚", label: "책상만 살려줘" },
+      bed:   { emoji: "🛏", label: "침대에서 못 일어나겠어요" },
+      sleep: { emoji: "🌙", label: "자기 전 2분" },
+      photo: { emoji: "📸", label: "사진으로 분석하기" },
+    },
+    guestTimeLabel: "손님이 몇 분 뒤에 오나요?",
+    guestTimeOptions: ["15분", "30분", "1시간"],
+    energyQuestion: "지금 에너지가 어때요?",
+    energyLevels: ["", "😵 거의 없음", "😩 조금", "😐 보통", "🙂 있음", "🔥 풀"],
     share: "🔗 공유",
     save: "💾 오늘 기록 저장하기",
     history: "📋 기록 보기",
@@ -145,7 +162,24 @@ export const translations: { ko: TranslationStrings; en: TranslationStrings } = 
 
   en: {
     appName: "RoomRescue",
+    tagline: "Not the whole room. Just one thing.",
     back: "← Back",
+
+    // Home — new concept
+    mainCta: "Do Just One Thing",
+    situationTitle: "Rescue by Situation",
+    situations: {
+      quick: { emoji: "⚡", label: "Just One Thing" },
+      guest: { emoji: "🚨", label: "Guest Coming" },
+      desk:  { emoji: "📚", label: "Desk Only" },
+      bed:   { emoji: "🛏", label: "Can't Get Out of Bed" },
+      sleep: { emoji: "🌙", label: "2-Min Bedtime Reset" },
+      photo: { emoji: "📸", label: "Analyze with Photo" },
+    },
+    guestTimeLabel: "How long until your guest arrives?",
+    guestTimeOptions: ["15 min", "30 min", "1 hour"],
+    energyQuestion: "How's your energy right now?",
+    energyLevels: ["", "😵 None", "😩 Barely", "😐 Some", "🙂 Good", "🔥 Full"],
     share: "🔗 Share",
     save: "💾 Save Today's Record",
     history: "📋 History",
