@@ -319,3 +319,9 @@ export default function UpgradePage() {
   );
 }
 */
+
+// 유료화 중단 — 빈 페이지로 홈 리다이렉트
+import { redirect } from "next/navigation";
+export default function UpgradePage() {
+  redirect("/");
+}
