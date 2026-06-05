@@ -293,11 +293,13 @@ function MissionPageInner() {
 
   // ── 미션 화면 ──
   return (
-    <div style={{ minHeight: "100dvh", background: "#F2FBEA", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100dvh", background: "#F2FBEA", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {/* 헤더 */}
       <div style={{
         padding: "max(16px, env(safe-area-inset-top, 16px)) 16px 12px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
         background: "linear-gradient(160deg, #76C442, #5A9E30)",
+        flexShrink: 0,
       }}>
         <button onClick={() => router.push("/")} style={{ background: "none", border: "none", color: "white", fontSize: 14, fontWeight: 700, cursor: "pointer", opacity: 0.85 }}>
           ← {isEn ? "Back" : "돌아가기"}
@@ -310,53 +312,61 @@ function MissionPageInner() {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "28px 20px max(32px, env(safe-area-inset-bottom, 32px))", maxWidth: 480, margin: "0 auto", width: "100%" }}>
+      {/* 본문 — 상하 균등 배치 */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between",
+        padding: "20px 20px max(20px, env(safe-area-inset-bottom, 20px))",
+        maxWidth: 480, margin: "0 auto", width: "100%",
+        overflow: "hidden",
+      }}>
+        {/* 위: 미션 카드 + 격려 문구 */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 0 }}>
+          {mission?.isBreakdown && (
+            <div style={{ background: "#FFF8E1", border: "1px solid #FFD54F", borderRadius: 10, padding: "7px 12px", marginBottom: 12, fontSize: 12, color: "#E65100", fontWeight: 600, flexShrink: 0 }}>
+              {isEn ? "✨ Broken down into something smaller" : "✨ 더 작게 쪼갰어요"}
+            </div>
+          )}
 
-        {mission?.isBreakdown && (
-          <div style={{ background: "#FFF8E1", border: "1px solid #FFD54F", borderRadius: 10, padding: "8px 14px", marginBottom: 16, fontSize: 12, color: "#E65100", fontWeight: 600 }}>
-            {isEn ? "✨ Broken down into something smaller" : "✨ 더 작게 쪼갰어요"}
+          <div style={{
+            background: "white", borderRadius: 22, padding: "24px 22px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+            marginBottom: 16, flexShrink: 0,
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#5A9E30", letterSpacing: 1.5, marginBottom: 12 }}>
+              {isEn ? "MISSION" : "지금 이것만"}
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#1a2744", lineHeight: 1.4, marginBottom: 14 }}>
+              {mission?.mission}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ fontSize: 11, color: "#bbb" }}>⏱</span>
+              <span style={{ fontSize: 12, color: "#bbb", fontWeight: 600 }}>
+                {isEn ? `About ${fmtSec(mission?.durationSec ?? 30)}` : `약 ${fmtSec(mission?.durationSec ?? 30)}`}
+              </span>
+            </div>
           </div>
-        )}
 
-        <div style={{
-          background: "white", borderRadius: 24, padding: "32px 24px",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-          flex: 1, display: "flex", flexDirection: "column", justifyContent: "center",
-          marginBottom: 20,
-        }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#5A9E30", letterSpacing: 1.5, marginBottom: 16 }}>
-            {isEn ? "MISSION" : "지금 이것만"}
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#1a2744", lineHeight: 1.45, marginBottom: 20 }}>
-            {mission?.mission}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 11, color: "#bbb" }}>⏱</span>
-            <span style={{ fontSize: 12, color: "#bbb", fontWeight: 600 }}>
-              {isEn ? `About ${fmtSec(mission?.durationSec ?? 30)}` : `약 ${fmtSec(mission?.durationSec ?? 30)}`}
-            </span>
+          <div style={{ textAlign: "center", fontSize: 13, color: "#888", lineHeight: 1.5, padding: "0 4px", flexShrink: 0 }}>
+            {mission?.encouragement}
           </div>
         </div>
 
-        <div style={{ textAlign: "center", fontSize: 13, color: "#888", marginBottom: 24, lineHeight: 1.6, padding: "0 8px" }}>
-          {mission?.encouragement}
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {/* 아래: 버튼 3개 — 항상 화면 하단 고정 */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0, paddingTop: 16 }}>
           <button onClick={handleComplete} style={{
-            width: "100%", padding: "18px",
+            width: "100%", padding: "16px",
             background: "linear-gradient(135deg, #76C442, #5A9E30)",
             color: "white", border: "none", borderRadius: 16,
             fontSize: 17, fontWeight: 900, cursor: "pointer",
-            boxShadow: "0 4px 16px rgba(90,158,48,0.35)",
+            boxShadow: "0 4px 14px rgba(90,158,48,0.35)",
           }}>
             {isEn ? "✓ Done" : "✓ 완료했어요"}
           </button>
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={handleTooHard} style={{ flex: 1, padding: "14px", background: "white", border: "1.5px solid #e5e7eb", borderRadius: 14, fontSize: 13, fontWeight: 700, color: "#666", cursor: "pointer" }}>
+            <button onClick={handleTooHard} style={{ flex: 1, padding: "13px", background: "white", border: "1.5px solid #e5e7eb", borderRadius: 14, fontSize: 13, fontWeight: 700, color: "#666", cursor: "pointer" }}>
               {isEn ? "Too hard" : "너무 어려워요"}
             </button>
-            <button onClick={handleDifferent} style={{ flex: 1, padding: "14px", background: "white", border: "1.5px solid #e5e7eb", borderRadius: 14, fontSize: 13, fontWeight: 700, color: "#666", cursor: "pointer" }}>
+            <button onClick={handleDifferent} style={{ flex: 1, padding: "13px", background: "white", border: "1.5px solid #e5e7eb", borderRadius: 14, fontSize: 13, fontWeight: 700, color: "#666", cursor: "pointer" }}>
               {isEn ? "Different" : "다른 미션"}
             </button>
           </div>
