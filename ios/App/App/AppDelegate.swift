@@ -3,7 +3,7 @@ import UIKit
 import Capacitor
 import TimerShared
 import UserNotifications
-import RevenueCat
+// import RevenueCat // 유료화 중단 (2026-06-04)
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -13,9 +13,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
 
-        // RevenueCat 초기화
-        Purchases.logLevel = .debug
-        Purchases.configure(withAPIKey: "test_NWAcGPIOQbxFeBslHlZIVdFnXSE")
+        // 유료화 중단으로 RevenueCat 초기화 제거
+        // Purchases.logLevel = .debug
+        // Purchases.configure(withAPIKey: "test_NWAcGPIOQbxFeBslHlZIVdFnXSE")
 
         return true
     }
