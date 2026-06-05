@@ -320,7 +320,7 @@ function MissionPageInner() {
         overflow: "hidden",
       }}>
         {/* 위: 미션 카드 + 격려 문구 */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", minHeight: 0 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-start", paddingTop: 8, minHeight: 0 }}>
           {mission?.isBreakdown && (
             <div style={{ background: "#FFF8E1", border: "1px solid #FFD54F", borderRadius: 10, padding: "7px 12px", marginBottom: 12, fontSize: 12, color: "#E65100", fontWeight: 600, flexShrink: 0 }}>
               {isEn ? "✨ Broken down into something smaller" : "✨ 더 작게 쪼갰어요"}

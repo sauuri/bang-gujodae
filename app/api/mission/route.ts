@@ -38,14 +38,22 @@ export async function POST(req: NextRequest) {
   const situationContext = isEn
     ? {
         quick: "The user wants to do just one quick thing right now.",
-        guest: `A guest is arriving in about ${timeMinutes} minutes. Prioritize visible areas: entrance, living space, surfaces. No deep cleaning — just rescue the appearance.`,
+        guest: timeMinutes <= 15
+          ? `EMERGENCY: guest arrives in ${timeMinutes} minutes. ONE action only — the single most visible thing to fix. Entrance or couch area. 30 seconds max. No time for anything else.`
+          : timeMinutes <= 30
+          ? `Guest arrives in ${timeMinutes} minutes. Focus on visible areas: entrance, living space, sofa, floor. Remove food/cups first. Quick wins only — no deep cleaning.`
+          : `Guest arrives in about ${timeMinutes} minutes. Reasonable time — start with food/trash removal, then surfaces, then floor. One step at a time.`,
         desk: "The user only wants to fix their desk/work area. Ignore the rest of the room.",
         bed:  "The user can barely get out of bed. Give the absolute smallest possible action — something they can do without getting up if possible.",
         sleep: "It's bedtime. Give a 2-minute reset mission so they can sleep comfortably.",
       }[situation]
     : {
         quick: "사용자가 지금 당장 한 가지만 빠르게 하고 싶어함.",
-        guest: `약 ${timeMinutes}분 후에 손님이 옴. 현관, 거실, 눈에 보이는 공간 우선. 완벽 정리 X, 겉보기 구조 O.`,
+        guest: timeMinutes <= 15
+          ? `비상: ${timeMinutes}분 후 손님 도착. 딱 하나만 — 지금 당장 눈에 가장 띄는 것 하나. 현관이나 소파 주변. 30초 이내. 다른 건 생각하지 마.`
+          : timeMinutes <= 30
+          ? `${timeMinutes}분 후 손님 옴. 현관, 거실, 소파, 바닥 위주. 컵/음식물 먼저 제거. 빠른 성과 위주 — 깊은 정리 금지.`
+          : `약 ${timeMinutes}분 후 손님 옴. 여유 있음. 음식/쓰레기 제거 → 책상/소파 표면 → 바닥 순서. 한 번에 하나씩.`,
         desk:  "책상/작업 공간만 정리하고 싶어함. 방 나머지는 무시.",
         bed:   "침대에서 못 일어날 것 같은 상태. 가능한 한 가장 작은 행동 — 일어나지 않아도 되는 것이면 더 좋음.",
         sleep: "자려고 누운 상태. 2분 안에 끝낼 수 있는 리셋 미션.",
