@@ -259,7 +259,7 @@ function HomeInner() {
   useEffect(() => {
     const init = async () => {
       try {
-        const onboarded = localStorage.getItem("bangOnboarded");
+        const onboarded = sessionStorage.getItem("bangOnboarded");
         if (!onboarded) setShowSplash(true);
         // 이번 주 구조 횟수
         const today = new Date().toISOString().slice(0, 10);
@@ -355,7 +355,7 @@ function HomeInner() {
 
   return (
     <>
-      {initialized && showSplash && <SplashIntro lang={lang} onDone={() => { localStorage.setItem("bangOnboarded", "1"); setShowSplash(false); }} />}
+      {initialized && showSplash && <SplashIntro lang={lang} onDone={() => { sessionStorage.setItem("bangOnboarded", "1"); setShowSplash(false); }} />}
 
       {showGuest && <GuestModal lang={lang} onStart={handleGuestTime} onClose={() => setShowGuest(false)} />}
       {showEnergy && pendingSituation && (
