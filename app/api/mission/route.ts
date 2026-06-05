@@ -13,17 +13,25 @@ export type Situation =
 export async function POST(req: NextRequest) {
   const {
     situation = "quick",
-    energy = 3,          // 1~5
+    energy = 3,
     timeMinutes = 2,
     lang = "ko",
-    breakdown,           // 이전 미션 텍스트 — 있으면 더 쪼개기
+    breakdown,
+    category,            // 지금 제일 거슬리는 것 (옷/컵/쓰레기/책상/침대)
   }: {
     situation?: Situation;
     energy?: number;
     timeMinutes?: number;
     lang?: string;
     breakdown?: string;
+    category?: string;
   } = await req.json();
+
+  const categoryHint = category && category !== "모르겠음" && category !== "idk"
+    ? (lang === "en"
+        ? `Focus area: ${category}. Give a mission related to this.`
+        : `집중 영역: ${category}. 이것과 관련된 미션을 줘.`)
+    : "";
 
   const isEn = lang === "en";
 
@@ -107,7 +115,7 @@ Respond:
     return isEn
       ? `Context: ${situationContext}
 User energy: ${energyDesc}
-Available time: ${timeMinutes} minutes
+Available time: ${timeMinutes} minutes${categoryHint ? `\n${categoryHint}` : ""}
 
 Give ONE mission:
 {
@@ -118,7 +126,7 @@ Give ONE mission:
 }`
       : `상황: ${situationContext}
 에너지 상태: ${energyDesc}
-가용 시간: ${timeMinutes}분
+가용 시간: ${timeMinutes}분${categoryHint ? `\n${categoryHint}` : ""}
 
 미션 하나:
 {
