@@ -168,9 +168,24 @@ Give ONE mission:
     return NextResponse.json(data);
   } catch (err) {
     console.error("[mission] error:", err);
-    const fallback = isEn
-      ? { mission: "Pick up the closest item on the floor and put it somewhere it belongs.", durationSec: 20, encouragement: "You opened the app. That already counts.", isBreakdown: false }
-      : { mission: "바닥에 가장 가까이 있는 물건 하나를 집어서 제자리에 놓기.", durationSec: 20, encouragement: "앱을 켰다는 것만으로도 시작이에요.", isBreakdown: false };
-    return NextResponse.json(fallback);
+    // 카테고리별 fallback 미션
+    const fallbacks: Record<string, { ko: string; en: string; sec: number }> = {
+      "옷":       { ko: "바닥에 있는 옷 1개를 집어서 의자나 침대 위에 올리기", en: "Pick up 1 piece of clothing from the floor and put it on a chair", sec: 15 },
+      "컵 / 병":  { ko: "가장 가까운 컵이나 병 하나를 싱크대로 가져가기", en: "Carry the closest cup or bottle to the sink", sec: 20 },
+      "쓰레기":   { ko: "눈에 보이는 쓰레기 하나를 집어서 쓰레기통에 버리기", en: "Pick up one piece of trash and throw it away", sec: 15 },
+      "책상":     { ko: "책상 위 물건 하나를 제자리에 돌려놓기", en: "Put one item on your desk back where it belongs", sec: 20 },
+      "침대 주변": { ko: "침대 위나 주변의 물건 하나를 치우기", en: "Remove one item from on or around your bed", sec: 15 },
+    };
+    const fb = fallbacks[category ?? ""] ?? null;
+    const mission = fb
+      ? (isEn ? fb.en : fb.ko)
+      : (isEn ? "Pick up the closest item on the floor." : "바닥에 가장 가까운 물건 하나 집기.");
+    const durationSec = fb?.sec ?? 20;
+    return NextResponse.json({
+      mission,
+      durationSec,
+      encouragement: isEn ? "You opened the app. That already counts." : "앱을 켰다는 것만으로도 시작이에요.",
+      isBreakdown: false,
+    });
   }
 }
