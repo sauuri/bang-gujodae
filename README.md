@@ -80,3 +80,4 @@ npm run dev
 - [ResetPilot](https://github.com/sauuri/reset-pilot) — 오늘 망한 날 복구 플랜 AI
 - [대충요리](https://github.com/sauuri/daechungyori) — 있는 재료로 요리 추천
  
+ 
